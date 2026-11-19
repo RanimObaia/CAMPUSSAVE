@@ -9,11 +9,11 @@ CampusSave met en relation les étudiants de l'ESSECT avec les restaurants et ca
 ## Équipe
 | Membre | Rôle |
 |---|---|
-| Ranim | |
-| Eya | |
-| Ahmed | |
-| Ines | |
-| Azer | |
+| Ranim | Cheffe de projet · Backend (auth, commerces, offres, statistiques) |
+| Eya | Web · Espace étudiant · Cahier des charges |
+| Ahmed | Backend · Paiement (commandes, Konnect, email, QR code) |
+| Ines | Web · Espace commerçant et admin · Diagrammes UML |
+| Azer | Mobile · Application Flutter |
 
 ## Architecture
 
