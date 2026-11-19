@@ -7,9 +7,14 @@ Modules : Intégration Web · Développement Mobile · Paiement Électronique
 CampusSave met en relation les étudiants de l'ESSECT avec les restaurants et cafétérias à proximité. Les commerçants publient leurs invendus à prix réduits ; les étudiants consultent les offres, remplissent un panier, paient en ligne, puis récupèrent leur commande grâce à un QR code.
 
 ## Équipe
-| Nom | Rôle |
+| Membre | Rôle |
 |---|---|
-| _À compléter_ | |
+| Ranim | |
+| Eya | |
+| Ahmed | |
+| Ines | |
+| Azer | |
+| Hamza | |
 
 ## Architecture
 
