@@ -1,4 +1,4 @@
-// Rôles tels que renvoyés par l'API (GET /users/me) ; à aligner avec le backend si besoin.
+// Rôles tels que renvoyés par l'API (GET /users/me) : student / merchant / admin.
 export const ROLES = { STUDENT: 'student', MERCHANT: 'merchant', ADMIN: 'admin' }
 
 export const CATEGORIES = ['BOULANGERIE', 'PLATS', 'PATISSERIE', 'BOISSONS']

@@ -30,7 +30,7 @@ const real = {
   validateQr: (code) => request('/orders/validate-qr', { method: 'POST', body: { code } }),
   merchantStats: () => request('/stats/merchant'),
   adminStats: () => request('/stats/admin'),
-  adminShops: (status) => request(`/admin/shops${status ? `?status=${status}` : ''}`),
+  adminShops: (statut) => request(`/admin/shops${statut ? `?statut=${statut}` : ''}`),
   validateShop: (id, decision) => request(`/admin/shops/${id}/validate`, { method: 'PATCH', body: { decision } }),
   adminUsers: () => request('/admin/users'),
   setUserActive: (id, actif) => request(`/admin/users/${id}`, { method: 'PATCH', body: { actif } }),

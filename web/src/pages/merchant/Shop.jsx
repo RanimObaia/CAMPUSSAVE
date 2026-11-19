@@ -31,7 +31,7 @@ export default function Shop() {
         <div className="cs-field full"><label htmlFor="adr">Adresse</label><input id="adr" required value={f.adresse} onChange={set('adresse')} /></div>
         <div className="cs-field"><label htmlFor="lat">Latitude</label><input id="lat" type="number" step="any" required value={f.latitude} onChange={set('latitude')} /></div>
         <div className="cs-field"><label htmlFor="lng">Longitude</label><input id="lng" type="number" step="any" required value={f.longitude} onChange={set('longitude')} /></div>
-        <div className="cs-field full"><label htmlFor="hor">Horaires d'ouverture</label><input id="hor" value={f.horaires || ''} onChange={set('horaires')} /></div>
+        <div className="cs-field full"><label htmlFor="hor">Horaires d'ouverture</label><input id="hor" value={f.horairesOuverture || ''} onChange={set('horairesOuverture')} /></div>
         <div className="cs-field full"><label htmlFor="d">Description</label><textarea id="d" rows={3} value={f.description || ''} onChange={set('description')} /></div>
         <div className="cs-field full"><button className="cs-btn primary">Enregistrer</button></div>
       </form>
