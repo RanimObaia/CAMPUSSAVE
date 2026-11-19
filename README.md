@@ -14,7 +14,6 @@ CampusSave met en relation les étudiants de l'ESSECT avec les restaurants et ca
 | Ahmed | |
 | Ines | |
 | Azer | |
-| Hamza | |
 
 ## Architecture
 
