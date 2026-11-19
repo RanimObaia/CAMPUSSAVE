@@ -139,13 +139,15 @@ class Notification {
 }
 
 enum Role {
-  ETUDIANT
-  COMMERCANT
-  ADMIN
+  student
+  merchant
+  admin
 }
 enum TypeCommerce {
   RESTAURANT
   CAFETERIA
+  BOULANGERIE
+  PATISSERIE
 }
 enum StatutValidation {
   EN_ATTENTE
@@ -160,6 +162,7 @@ enum StatutOffre {
 enum StatutCommande {
   EN_ATTENTE_PAIEMENT
   PAYEE
+  PRETE
   RECUPEREE
   ANNULEE
 }

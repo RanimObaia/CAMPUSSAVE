@@ -5,7 +5,7 @@ import { CATEGORIES } from '../../config/constants'
 import { Entete } from '../../components/ui'
 import { fromMillimes, toInputDateTime, toMillimes } from '../../utils/format'
 
-const VIDE = { titre: '', description: '', categorie: 'PLATS', prixInitial: '', prixReduit: '', quantiteDisponible: 1, debutRecuperation: '', finRecuperation: '' }
+const VIDE = { titre: '', description: '', categorie: 'PLATS', prixInitial: '', prixReduit: '', quantiteDisponible: 1, heureDebutRecuperation: '', heureFinRecuperation: '' }
 
 // Création et modification d'une offre (règles du cahier des charges : prix réduit < prix initial, stock >= 0, fin > début).
 export default function OfferForm() {
@@ -17,7 +17,7 @@ export default function OfferForm() {
 
   useEffect(() => {
     if (!id) return
-    api.getOffer(id).then((o) => setF({ ...o, prixInitial: fromMillimes(o.prixInitial), prixReduit: fromMillimes(o.prixReduit), debutRecuperation: toInputDateTime(o.debutRecuperation), finRecuperation: toInputDateTime(o.finRecuperation) }))
+    api.getOffer(id).then((o) => setF({ ...o, prixInitial: fromMillimes(o.prixInitial), prixReduit: fromMillimes(o.prixReduit), heureDebutRecuperation: toInputDateTime(o.heureDebutRecuperation), heureFinRecuperation: toInputDateTime(o.heureFinRecuperation) }))
       .catch((e) => setErreur(e.message))
   }, [id])
 
@@ -30,8 +30,8 @@ export default function OfferForm() {
     const quantiteDisponible = Number(f.quantiteDisponible)
     if (!(prixReduit > 0) || prixReduit >= prixInitial) return setErreur('Le prix réduit doit être positif et inférieur au prix initial.')
     if (!Number.isInteger(quantiteDisponible) || quantiteDisponible < 0) return setErreur('La quantité doit être un entier positif ou nul.')
-    if (new Date(f.finRecuperation) <= new Date(f.debutRecuperation)) return setErreur("L'heure de fin doit suivre l'heure de début.")
-    const data = { titre: f.titre.trim(), description: f.description, categorie: f.categorie, prixInitial, prixReduit, quantiteDisponible, debutRecuperation: new Date(f.debutRecuperation).toISOString(), finRecuperation: new Date(f.finRecuperation).toISOString() }
+    if (new Date(f.heureFinRecuperation) <= new Date(f.heureDebutRecuperation)) return setErreur("L'heure de fin doit suivre l'heure de début.")
+    const data = { titre: f.titre.trim(), description: f.description, categorie: f.categorie, prixInitial, prixReduit, quantiteDisponible, heureDebutRecuperation: new Date(f.heureDebutRecuperation).toISOString(), heureFinRecuperation: new Date(f.heureFinRecuperation).toISOString() }
     setErreur(''); setEnvoi(true)
     try {
       await (id ? api.updateOffer(id, data) : api.createOffer(data))
@@ -51,8 +51,8 @@ export default function OfferForm() {
         <div className="cs-field"><label htmlFor="qte">Quantité disponible</label><input id="qte" type="number" min="0" step="1" required value={f.quantiteDisponible} onChange={set('quantiteDisponible')} /></div>
         <div className="cs-field"><label htmlFor="pi">Prix initial (DT)</label><input id="pi" inputMode="decimal" required value={f.prixInitial} onChange={set('prixInitial')} /></div>
         <div className="cs-field"><label htmlFor="pr">Prix réduit (DT)</label><input id="pr" inputMode="decimal" required value={f.prixReduit} onChange={set('prixReduit')} /></div>
-        <div className="cs-field"><label htmlFor="d">Début du retrait</label><input id="d" type="datetime-local" required value={f.debutRecuperation} onChange={set('debutRecuperation')} /></div>
-        <div className="cs-field"><label htmlFor="e">Fin du retrait</label><input id="e" type="datetime-local" required value={f.finRecuperation} onChange={set('finRecuperation')} /></div>
+        <div className="cs-field"><label htmlFor="d">Début du retrait</label><input id="d" type="datetime-local" required value={f.heureDebutRecuperation} onChange={set('heureDebutRecuperation')} /></div>
+        <div className="cs-field"><label htmlFor="e">Fin du retrait</label><input id="e" type="datetime-local" required value={f.heureFinRecuperation} onChange={set('heureFinRecuperation')} /></div>
         <div className="cs-actions cs-field full">
           <button className="cs-btn primary" disabled={envoi}>{envoi ? 'Enregistrement…' : 'Enregistrer'}</button>
           <button type="button" className="cs-btn" onClick={() => nav('/commercant/offres')}>Annuler</button>

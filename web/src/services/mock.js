@@ -1,14 +1,14 @@
-// Données fictives : même forme que les réponses de l'API (voir openapi.yaml).
+// Données fictives : même forme que les réponses de l'API (mêmes noms que le diagramme de classes).
 const wait = (v) => new Promise((r) => setTimeout(() => r(structuredClone(v)), 150))
 const h = (n) => new Date(Date.now() + n * 3600e3).toISOString()
 let seq = 100
 
 const db = {
-  shop: { id: 's1', nom: 'Boulangerie Le Fournil', description: 'Pain et viennoiseries du jour', type: 'BOULANGERIE', adresse: 'Rue de la Liberté, Tunis', latitude: 36.8065, longitude: 10.1815, horaires: '07:00 - 20:00', statutValidation: 'VALIDE' },
+  shop: { id: 's1', nom: 'Boulangerie Le Fournil', description: 'Pain et viennoiseries du jour', type: 'BOULANGERIE', adresse: 'Rue de la Liberté, Tunis', latitude: 36.8065, longitude: 10.1815, horairesOuverture: '07:00 - 20:00', statutValidation: 'VALIDE' },
   offers: [
-    { id: 'o1', titre: 'Lot de viennoiseries (6 pièces)', description: '', categorie: 'BOULANGERIE', prixInitial: 12000, prixReduit: 4500, quantiteDisponible: 4, debutRecuperation: h(1), finRecuperation: h(2), statut: 'ACTIVE' },
-    { id: 'o2', titre: 'Pain du jour (2 baguettes)', description: '', categorie: 'BOULANGERIE', prixInitial: 3000, prixReduit: 1500, quantiteDisponible: 0, debutRecuperation: h(2), finRecuperation: h(3), statut: 'EPUISEE' },
-    { id: 'o3', titre: 'Assortiment de tartes salées', description: '', categorie: 'PLATS', prixInitial: 10000, prixReduit: 5000, quantiteDisponible: 6, debutRecuperation: h(3), finRecuperation: h(4), statut: 'ACTIVE' },
+    { id: 'o1', titre: 'Lot de viennoiseries (6 pièces)', description: '', categorie: 'BOULANGERIE', prixInitial: 12000, prixReduit: 4500, quantiteDisponible: 4, heureDebutRecuperation: h(1), heureFinRecuperation: h(2), statut: 'ACTIVE' },
+    { id: 'o2', titre: 'Pain du jour (2 baguettes)', description: '', categorie: 'BOULANGERIE', prixInitial: 3000, prixReduit: 1500, quantiteDisponible: 0, heureDebutRecuperation: h(2), heureFinRecuperation: h(3), statut: 'EPUISEE' },
+    { id: 'o3', titre: 'Assortiment de tartes salées', description: '', categorie: 'PLATS', prixInitial: 10000, prixReduit: 5000, quantiteDisponible: 6, heureDebutRecuperation: h(3), heureFinRecuperation: h(4), statut: 'ACTIVE' },
   ],
   orders: [
     { id: 'c1', code: 'CS-2047', lignes: [{ titre: 'Lot de viennoiseries (6 pièces)', quantite: 1, prixUnitaire: 4500 }], montantTotal: 4500, statut: 'RECUPEREE', createdAt: h(-5) },
@@ -56,7 +56,7 @@ export const mock = {
     repasSauves: db.orders.filter((o) => o.statut === 'RECUPEREE').reduce((s, o) => s + o.lignes.reduce((n, l) => n + l.quantite, 0), 0),
   }),
   adminStats: () => wait({ utilisateurs: db.users.length, commercesValides: db.shops.filter((s) => s.statutValidation === 'VALIDE').length, commercesEnAttente: db.shops.filter((s) => s.statutValidation === 'EN_ATTENTE').length, commandes: db.orders.length, paiements: db.orders.filter((o) => o.statut !== 'ANNULEE' && o.statut !== 'EN_ATTENTE_PAIEMENT').length }),
-  adminShops: (status) => wait(db.shops.filter((s) => !status || (status === 'pending' ? s.statutValidation === 'EN_ATTENTE' : true))),
+  adminShops: (statut) => wait(db.shops.filter((s) => !statut || s.statutValidation === statut)),
   validateShop: (id, decision) => { db.shops = db.shops.map((s) => (s.id === id ? { ...s, statutValidation: decision } : s)); return wait({}) },
   adminUsers: () => wait(db.users),
   setUserActive: (id, actif) => { db.users = db.users.map((u) => (u.id === id ? { ...u, actif } : u)); return wait({}) },

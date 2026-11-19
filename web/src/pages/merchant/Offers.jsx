@@ -24,7 +24,7 @@ export default function Offers() {
           <strong key="t">{o.titre}</strong>,
           <span key="p">{dt(o.prixReduit)} <s>{dt(o.prixInitial)}</s></span>,
           o.quantiteDisponible,
-          `${dateHeure(o.debutRecuperation)} → ${dateHeure(o.finRecuperation)}`,
+          `${dateHeure(o.heureDebutRecuperation)} → ${dateHeure(o.heureFinRecuperation)}`,
           <Badge key="s" type="offre" valeur={o.statut} />,
           <div key="a" className="cs-actions">
             {o.statut !== 'RETIREE' && <Link className="cs-btn" to={`/commercant/offres/${o.id}`}>Modifier</Link>}
