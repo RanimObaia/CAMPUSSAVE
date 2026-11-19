@@ -1,15 +1,24 @@
-const admin = require('firebase-admin');
+const { initializeApp, getApps, applicationDefault } = require('firebase-admin/app');
+const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 
-// Credentials come from the service-account JSON file whose path is in
-// GOOGLE_APPLICATION_CREDENTIALS (see .env.example). Never commit that file.
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
+// Two modes:
+// - Local emulators (FIREBASE_AUTH_EMULATOR_HOST / FIRESTORE_EMULATOR_HOST set):
+//   no credentials needed, only a project id.
+// - Real Firebase project: credentials come from the service-account JSON
+//   whose path is in GOOGLE_APPLICATION_CREDENTIALS. Never commit that file.
+if (!getApps().length) {
+  const usingEmulators =
+    process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST;
+
+  initializeApp(
+    usingEmulators
+      ? { projectId: process.env.FIREBASE_PROJECT_ID || 'demo-campussave' }
+      : { credential: applicationDefault() },
+  );
 }
 
-const db = admin.firestore();
-const auth = admin.auth();
-const messaging = admin.messaging();
+const db = getFirestore();
+const auth = getAuth();
 
-module.exports = { admin, db, auth, messaging };
+module.exports = { db, auth, FieldValue, Timestamp };
