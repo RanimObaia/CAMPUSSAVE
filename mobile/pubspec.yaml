@@ -1,0 +1,23 @@
+name: campussave
+description: CampusSave mobile app (Flutter) - anti food-waste platform for ESSECT students.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  # Dependencies (firebase_core, firebase_auth, firebase_messaging, http,
+  # provider, webview_flutter, mobile_scanner, qr_flutter, shared_preferences)
+  # are added with `flutter pub add` when each feature is built.
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
