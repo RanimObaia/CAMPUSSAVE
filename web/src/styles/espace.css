@@ -48,4 +48,7 @@
 .cs-empty { padding: 28px; text-align: center; color: var(--muted); }
 .cs-login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
 .cs-login form { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; }
+.cs-choix { display: flex; gap: 20px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 0; }
+.cs-choix legend { font-weight: 600; font-size: 14px; padding: 0 4px; }
+.cs-choix label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 @media (max-width: 720px) { .cs-main { padding: 20px 16px; } .cs-form { grid-template-columns: 1fr; } }

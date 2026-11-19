@@ -30,6 +30,16 @@ const db = {
 const fail = (code, message) => Promise.reject(Object.assign(new Error(message), { code }))
 
 export const mock = {
+  // Inscription fictive : même règles et mêmes erreurs que POST /auth/register
+  register: (data) => {
+    const email = data.email.trim().toLowerCase()
+    if (db.users.some((u) => u.email === email)) return fail('EMAIL_DEJA_UTILISE', 'Cette adresse e-mail est déjà utilisée.')
+    const user = { ...data, email, id: `u${++seq}`, actif: true }
+    delete user.motDePasse // le mot de passe n'est jamais renvoyé
+    if (user.role === 'student') user.ecoPoints = 0
+    db.users.push(user)
+    return wait(user)
+  },
   getMe: (email) => wait(db.users.find((u) => u.email === email) || { id: 'a1', nom: 'Admin', prenom: 'Démo', email, role: email.startsWith('admin') ? 'admin' : 'merchant', actif: true }),
   getMyShop: () => wait(db.shop),
   saveShop: (data) => { db.shop = { ...db.shop, ...data }; return wait(db.shop) },

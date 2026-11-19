@@ -5,6 +5,8 @@ import { ROLES } from './config/constants'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
+import Inscription from './pages/Inscription'
+import Accueil from './pages/etudiant/Accueil'
 import MerchantDashboard from './pages/merchant/Dashboard'
 import Offers from './pages/merchant/Offers'
 import OfferForm from './pages/merchant/OfferForm'
@@ -28,14 +30,18 @@ const LIENS_ADMIN = [
   { to: '/admin/utilisateurs', label: 'Utilisateurs' },
 ]
 
-// Routes des espaces commerçant et administrateur.
-// L'espace étudiant (Eya) s'ajoute ici avec ses propres routes, par exemple sous "/".
+// Routes des espaces étudiant, commerçant et administrateur.
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/inscription" element={<Inscription />} />
+          {/* Espace étudiant (Eya) */}
+          <Route element={<ProtectedRoute role={ROLES.STUDENT} />}>
+            <Route path="/" element={<Accueil />} />
+          </Route>
           <Route element={<ProtectedRoute role={ROLES.MERCHANT} />}>
             <Route path="/commercant" element={<Layout titre="Espace commerçant" liens={LIENS_COMMERCANT} />}>
               <Route index element={<MerchantDashboard />} />
