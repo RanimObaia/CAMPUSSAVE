@@ -28,6 +28,11 @@ const real = {
     return request(`/offers${qs ? `?${qs}` : ''}`)
   },
   getOffreDetail: (id) => request(`/offers/${id}`),
+  // Étudiant : commandes et paiement (routes d'Ahmed)
+  createOrder: (data) => request('/orders', { method: 'POST', body: data }),
+  initPaiement: (commandeId) => request('/payments/init', { method: 'POST', body: { commandeId } }),
+  getCommande: (id) => request(`/orders/${id}`),
+  mesCommandes: () => request('/orders/mine'),
   getMyShop: () => request('/shops/mine'),
   saveShop: (data) => (data.id ? request(`/shops/${data.id}`, { method: 'PUT', body: data }) : request('/shops', { method: 'POST', body: data })),
   listMyOffers: () => request('/offers?mine=true'),

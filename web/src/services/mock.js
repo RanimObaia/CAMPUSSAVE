@@ -49,7 +49,69 @@ function offresAvecCommerce() {
   })
 }
 
+// Espace étudiant : commandes passées depuis le panier (Eya)
+const commandesEtudiant = () => db.orders.filter((o) => o.parEtudiant)
+const toutesLesOffres = () => [...db.offers, ...db.offresAutres]
+function changerStock(lignes, signe) {
+  for (const l of lignes) {
+    const o = toutesLesOffres().find((x) => x.id === l.offreId)
+    if (!o) continue
+    o.quantiteDisponible += signe * l.quantite
+    o.statut = o.quantiteDisponible > 0 ? 'ACTIVE' : 'EPUISEE'
+  }
+}
+
 export const mock = {
+  // Étudiant : POST /orders → commande « En attente de paiement », quantités réservées
+  createOrder: ({ commerceId, lignes }) => {
+    const offres = offresAvecCommerce()
+    const detail = []
+    for (const l of lignes) {
+      const o = offres.find((x) => x.id === l.offreId)
+      if (!o || o.commerce.id !== commerceId) return fail('OFFRE_INTROUVABLE', 'Une offre du panier est introuvable.')
+      if (o.statut !== 'ACTIVE' || l.quantite > o.quantiteDisponible) return fail('STOCK_INSUFFISANT', `Stock insuffisant pour « ${o.titre} » : il en reste ${o.quantiteDisponible}.`)
+      detail.push({ offre: o, quantite: l.quantite })
+    }
+    const commande = {
+      id: `c${++seq}`, code: `CS-${2000 + seq}`, parEtudiant: true, commerceId,
+      commerce: { id: detail[0].offre.commerce.id, nom: detail[0].offre.commerce.nom, adresse: detail[0].offre.commerce.adresse },
+      lignes: detail.map(({ offre, quantite }) => ({ offreId: offre.id, titre: offre.titre, quantite, prixUnitaire: offre.prixReduit })),
+      montantTotal: detail.reduce((s, { offre, quantite }) => s + offre.prixReduit * quantite, 0),
+      heureDebutRecuperation: detail.map((d) => d.offre.heureDebutRecuperation).sort()[0],
+      heureFinRecuperation: detail.map((d) => d.offre.heureFinRecuperation).sort().at(-1),
+      statut: 'EN_ATTENTE_PAIEMENT', createdAt: new Date().toISOString(), paiement: null,
+    }
+    changerStock(commande.lignes, -1)
+    db.orders.unshift(commande)
+    return wait(commande)
+  },
+  // POST /payments/init → lien vers la page de paiement (ici, la page Konnect simulée)
+  initPaiement: (commandeId) => {
+    const c = db.orders.find((o) => o.id === commandeId)
+    if (!c) return fail('COMMANDE_INTROUVABLE', 'Commande introuvable.')
+    c.paiement = { statut: 'INITIE', reference: `KNT-DEMO-${c.code}`, montant: c.montantTotal }
+    return wait({ payUrl: `/paiement/simulation/${c.id}` })
+  },
+  // Ce que fait le webhook Konnect côté serveur (mode démo seulement)
+  simulerResultatPaiement: (commandeId, reussi) => {
+    const c = db.orders.find((o) => o.id === commandeId)
+    if (!c) return fail('COMMANDE_INTROUVABLE', 'Commande introuvable.')
+    if (c.statut !== 'EN_ATTENTE_PAIEMENT') return wait(c) // déjà traité : rien ne change
+    if (reussi) {
+      c.statut = 'PAYEE'
+      c.paiement = { ...c.paiement, statut: 'REUSSI', datePaiement: new Date().toISOString() }
+    } else {
+      c.statut = 'ANNULEE'
+      c.paiement = { ...c.paiement, statut: 'ECHOUE' }
+      changerStock(c.lignes, +1) // quantités remises en vente
+    }
+    return wait(c)
+  },
+  getCommande: (id) => {
+    const c = db.orders.find((o) => o.id === id)
+    return c ? wait(c) : fail('COMMANDE_INTROUVABLE', 'Commande introuvable.')
+  },
+  mesCommandes: () => wait(commandesEtudiant()),
   // Étudiant : offres visibles (actives, en stock, pas expirées, commerce validé) + filtres de recherche
   listOffers: (filtres = {}) => {
     const q = (filtres.q || '').trim().toLowerCase()
@@ -84,7 +146,7 @@ export const mock = {
   createOffer: (data) => { const o = { ...data, id: `o${++seq}`, statut: data.quantiteDisponible > 0 ? 'ACTIVE' : 'EPUISEE' }; db.offers.unshift(o); return wait(o) },
   updateOffer: (id, data) => { db.offers = db.offers.map((o) => (o.id === id ? { ...o, ...data, statut: data.quantiteDisponible > 0 && o.statut === 'EPUISEE' ? 'ACTIVE' : data.quantiteDisponible === 0 ? 'EPUISEE' : o.statut } : o)); return wait(db.offers.find((o) => o.id === id)) },
   removeOffer: (id) => { db.offers = db.offers.map((o) => (o.id === id ? { ...o, statut: 'RETIREE' } : o)); return wait({}) },
-  listOrders: () => wait(db.orders),
+  listOrders: () => wait(db.orders.filter((o) => !o.commerceId || o.commerceId === db.shop.id)),
   markReady: (id) => { db.orders = db.orders.map((o) => (o.id === id && o.statut === 'PAYEE' ? { ...o, statut: 'PRETE' } : o)); return wait(db.orders.find((o) => o.id === id)) },
   validateQr: (code) => {
     const c = String(code).trim().toUpperCase()
