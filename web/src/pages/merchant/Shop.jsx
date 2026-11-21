@@ -8,7 +8,12 @@ export default function Shop() {
   const [msg, setMsg] = useState('')
   const [erreur, setErreur] = useState('')
 
-  useEffect(() => { api.getMyShop().then(setF).catch((e) => setErreur(e.message)) }, [])
+  // Nouveau commerçant : l'API répond 404 COMMERCE_INTROUVABLE, on affiche alors un formulaire vide (la sauvegarde fera un POST).
+  useEffect(() => {
+    api.getMyShop().then(setF).catch((e) => (e.code === 'COMMERCE_INTROUVABLE'
+      ? setF({ nom: '', type: 'RESTAURANT', adresse: '', latitude: '', longitude: '', horairesOuverture: '', description: '' })
+      : setErreur(e.message)))
+  }, [])
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
 
   async function submit(e) {
@@ -20,7 +25,7 @@ export default function Shop() {
   if (!f) return <>{erreur ? <div className="cs-error" role="alert">{erreur}</div> : <p className="cs-empty">Chargement…</p>}</>
   return (
     <>
-      <Entete titre="Mon commerce" sous={<>Statut : <Badge type="commerce" valeur={f.statutValidation} /></>} />
+      <Entete titre="Mon commerce" sous={f.statutValidation ? <>Statut : <Badge type="commerce" valeur={f.statutValidation} /></> : "Renseignez les informations de votre commerce"} />
       {f.statutValidation !== 'VALIDE' && <div className="cs-error">Vous pourrez publier des offres une fois votre commerce validé par l'administrateur.</div>}
       <form className="cs-form" onSubmit={submit}>
         {erreur && <div className="cs-error cs-field full" role="alert">{erreur}</div>}
