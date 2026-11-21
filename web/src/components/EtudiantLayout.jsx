@@ -19,7 +19,7 @@ function Contenu() {
   const LIENS = [
     { to: '/', label: 'Offres', end: true },
     { to: '/panier', label: 'Mon panier', badge: nbArticles },
-    // Ajouté à une prochaine étape : Mes commandes
+    { to: '/commandes', label: 'Mes commandes' },
   ]
   return (
     <div className="cs et">

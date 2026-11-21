@@ -10,6 +10,10 @@ import EtudiantLayout from './components/EtudiantLayout'
 import OffresEtudiant from './pages/etudiant/Offres'
 import OffreDetail from './pages/etudiant/OffreDetail'
 import Panier from './pages/etudiant/Panier'
+import PaiementSimulation from './pages/etudiant/PaiementSimulation'
+import PaiementRetour from './pages/etudiant/PaiementRetour'
+import MesCommandes from './pages/etudiant/MesCommandes'
+import CommandeDetail from './pages/etudiant/CommandeDetail'
 import MerchantDashboard from './pages/merchant/Dashboard'
 import Offers from './pages/merchant/Offers'
 import OfferForm from './pages/merchant/OfferForm'
@@ -47,7 +51,12 @@ export default function App() {
               <Route path="/" element={<OffresEtudiant />} />
               <Route path="/offres/:id" element={<OffreDetail />} />
               <Route path="/panier" element={<Panier />} />
+              <Route path="/paiement/retour" element={<PaiementRetour />} />
+              <Route path="/commandes" element={<MesCommandes />} />
+              <Route path="/commandes/:id" element={<CommandeDetail />} />
             </Route>
+            {/* Mode démo : page de paiement simulée, hors du menu étudiant */}
+            <Route path="/paiement/simulation/:id" element={<PaiementSimulation />} />
           </Route>
           <Route element={<ProtectedRoute role={ROLES.MERCHANT} />}>
             <Route path="/commercant" element={<Layout titre="Espace commerçant" liens={LIENS_COMMERCANT} />}>
