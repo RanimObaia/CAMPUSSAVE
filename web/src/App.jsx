@@ -6,7 +6,9 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Inscription from './pages/Inscription'
-import Accueil from './pages/etudiant/Accueil'
+import EtudiantLayout from './components/EtudiantLayout'
+import OffresEtudiant from './pages/etudiant/Offres'
+import OffreDetail from './pages/etudiant/OffreDetail'
 import MerchantDashboard from './pages/merchant/Dashboard'
 import Offers from './pages/merchant/Offers'
 import OfferForm from './pages/merchant/OfferForm'
@@ -40,7 +42,10 @@ export default function App() {
           <Route path="/inscription" element={<Inscription />} />
           {/* Espace étudiant (Eya) */}
           <Route element={<ProtectedRoute role={ROLES.STUDENT} />}>
-            <Route path="/" element={<Accueil />} />
+            <Route element={<EtudiantLayout />}>
+              <Route path="/" element={<OffresEtudiant />} />
+              <Route path="/offres/:id" element={<OffreDetail />} />
+            </Route>
           </Route>
           <Route element={<ProtectedRoute role={ROLES.MERCHANT} />}>
             <Route path="/commercant" element={<Layout titre="Espace commerçant" liens={LIENS_COMMERCANT} />}>

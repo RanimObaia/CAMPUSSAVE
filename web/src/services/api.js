@@ -20,6 +20,14 @@ const real = {
   // Inscription (étudiant ou commerçant) : route publique, sans jeton
   register: (data) => request('/auth/register', { method: 'POST', body: data }),
   getMe: () => request('/users/me'),
+  // Étudiant : recherche d'offres (produit ou commerce, catégorie, prix maximum en millimes)
+  listOffers: (filtres = {}) => {
+    const params = new URLSearchParams()
+    for (const [cle, valeur] of Object.entries(filtres)) if (valeur) params.set(cle, valeur)
+    const qs = params.toString()
+    return request(`/offers${qs ? `?${qs}` : ''}`)
+  },
+  getOffreDetail: (id) => request(`/offers/${id}`),
   getMyShop: () => request('/shops/mine'),
   saveShop: (data) => (data.id ? request(`/shops/${data.id}`, { method: 'PUT', body: data }) : request('/shops', { method: 'POST', body: data })),
   listMyOffers: () => request('/offers?mine=true'),

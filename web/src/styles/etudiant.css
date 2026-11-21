@@ -1,0 +1,50 @@
+/* Espace étudiant — reprend les couleurs de la charte CampusSave (espace.css) */
+.et-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; padding: 12px 32px; background: var(--green-dark); }
+.et-brand { font-size: 18px; }
+.et-nav { display: flex; gap: 4px; flex: 1; }
+.et-nav a { color: #d5e6d0; text-decoration: none; padding: 8px 14px; border-radius: 10px; font-weight: 600; }
+.et-nav a.active { background: var(--green); color: #fff; }
+.et-nav a:hover { background: rgba(255,255,255,.08); }
+.et-user { display: flex; align-items: center; gap: 12px; color: #fff; font-weight: 600; }
+.et-user .cs-btn { background: transparent; color: #d5e6d0; border-color: #3d5a40; }
+.et-main { max-width: 1120px; margin: 0 auto; padding: 32px; display: flex; flex-direction: column; gap: 20px; }
+
+.et-recherche { display: flex; gap: 12px; flex-wrap: wrap; }
+.et-input { flex: 1 1 320px; min-height: 48px; padding: 0 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--green-dark); }
+.et-select { flex: 0 0 200px; }
+.et-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.et-chips button { border: 1px solid var(--line); background: #fff; color: var(--green-dark); border-radius: 999px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+.et-chips button.actif { background: var(--green); border-color: var(--green); color: #fff; }
+.et-mt { margin-top: 12px; }
+
+.et-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+.et-carte { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; text-decoration: none; color: inherit; transition: transform .15s, box-shadow .15s; }
+.et-carte:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(23,48,26,.08); }
+.et-visuel { position: relative; height: 140px; display: flex; align-items: center; justify-content: center; background: var(--green-light); font-size: 56px; }
+.et-visuel img { width: 100%; height: 100%; object-fit: cover; }
+.et-remise { position: absolute; top: 12px; left: 12px; background: var(--amber); color: #fff; font-size: 13px; padding: 4px 10px; border-radius: 999px; }
+.et-corps { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.et-commerce { font-size: 13px; font-weight: 600; color: var(--green); text-transform: uppercase; letter-spacing: .5px; }
+.cs h2.et-titre { font-size: 17px; }
+.et-prix { display: flex; align-items: baseline; gap: 8px; }
+.et-prix b { font-size: 20px; color: var(--green); }
+.et-prix s { color: var(--muted); font-size: 14px; }
+.et-infos { display: flex; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 8px; font-size: 13px; color: var(--muted); }
+
+.et-retour { font-weight: 600; text-decoration: none; }
+.et-detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+.et-visuel-grand { height: 100%; min-height: 280px; border-radius: 12px; font-size: 96px; }
+.et-detail-texte { display: flex; flex-direction: column; gap: 12px; }
+.et-prix-grand b { font-size: 30px; }
+.et-liste-infos { margin: 8px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.et-liste-infos div { display: flex; gap: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.et-liste-infos dt { flex: 0 0 110px; color: var(--muted); font-weight: 600; }
+.et-liste-infos dd { margin: 0; }
+
+@media (max-width: 720px) {
+  .et-header { padding: 12px 16px; gap: 12px; }
+  .et-main { padding: 20px 16px; }
+  .et-select { flex: 1 1 100%; }
+  .et-detail { grid-template-columns: 1fr; }
+  .et-visuel-grand { min-height: 200px; }
+}
