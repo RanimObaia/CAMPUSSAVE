@@ -32,6 +32,8 @@ const real = {
   createOrder: (data) => request('/orders', { method: 'POST', body: data }),
   initPaiement: (commandeId) => request('/payments/init', { method: 'POST', body: { commandeId } }),
   getCommande: (id) => request(`/orders/${id}`),
+  // Paiement refusé ou abandonné sur Konnect : la commande est annulée et le stock remis en vente
+  annulerCommande: (id) => request(`/orders/${id}/cancel`, { method: 'POST' }),
   mesCommandes: () => request('/orders/mine'),
   studentStats: () => request('/stats/student'),
   getMyShop: () => request('/shops/mine'),

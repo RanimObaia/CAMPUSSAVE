@@ -32,7 +32,7 @@ export default function CommandeDetail() {
           <div className="cs-top">
             <div>
               <h1>Commande {c.code}</h1>
-              <p className="cs-sub">Passée le {dateHeure(c.createdAt)}</p>
+              <p className="cs-sub">Passée le {dateHeure(c.dateCommande)}</p>
             </div>
             <Badge type="commande" valeur={c.statut} />
           </div>

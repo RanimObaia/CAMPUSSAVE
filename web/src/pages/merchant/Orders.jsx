@@ -19,7 +19,7 @@ export default function Orders() {
         lignes={(data || []).map((o) => [
           <strong key="c">{o.code}</strong>,
           o.lignes.map((l) => `${l.quantite} × ${l.titre}`).join(', '),
-          dateHeure(o.createdAt), dt(o.montantTotal),
+          dateHeure(o.dateCommande), dt(o.montantTotal),
           <Badge key="s" type="commande" valeur={o.statut} />,
           o.statut === 'PAYEE' ? <button key="a" type="button" className="cs-btn" onClick={() => prete(o)}>Marquer prête</button> : '',
         ])} />

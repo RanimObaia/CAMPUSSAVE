@@ -11,9 +11,9 @@ const db = {
     { id: 'o3', titre: 'Assortiment de tartes salées', description: '', categorie: 'PLATS', prixInitial: 10000, prixReduit: 5000, quantiteDisponible: 6, heureDebutRecuperation: h(3), heureFinRecuperation: h(4), statut: 'ACTIVE' },
   ],
   orders: [
-    { id: 'c1', code: 'CS-2047', lignes: [{ titre: 'Lot de viennoiseries (6 pièces)', quantite: 1, prixUnitaire: 4500 }], montantTotal: 4500, statut: 'RECUPEREE', createdAt: h(-5) },
-    { id: 'c2', code: 'CS-2048', lignes: [{ titre: 'Lot de viennoiseries (6 pièces)', quantite: 2, prixUnitaire: 4500 }], montantTotal: 9000, statut: 'PAYEE', createdAt: h(-1) },
-    { id: 'c3', code: 'CS-2049', lignes: [{ titre: 'Assortiment de tartes salées', quantite: 1, prixUnitaire: 5000 }], montantTotal: 5000, statut: 'PRETE', createdAt: h(-0.5) },
+    { id: 'c1', code: 'CS-2047', lignes: [{ titre: 'Lot de viennoiseries (6 pièces)', quantite: 1, prixUnitaire: 4500 }], montantTotal: 4500, statut: 'RECUPEREE', dateCommande: h(-5) },
+    { id: 'c2', code: 'CS-2048', lignes: [{ titre: 'Lot de viennoiseries (6 pièces)', quantite: 2, prixUnitaire: 4500 }], montantTotal: 9000, statut: 'PAYEE', dateCommande: h(-1) },
+    { id: 'c3', code: 'CS-2049', lignes: [{ titre: 'Assortiment de tartes salées', quantite: 1, prixUnitaire: 5000 }], montantTotal: 5000, statut: 'PRETE', dateCommande: h(-0.5) },
   ],
   shops: [
     { id: 's2', nom: 'Pâtisserie Les Délices', type: 'PATISSERIE', adresse: 'Tunis', statutValidation: 'EN_ATTENTE' },
@@ -51,12 +51,12 @@ function offresAvecCommerce() {
 
 // Deux commandes déjà récupérées par l'étudiant démo, pour que son tableau de bord ne soit pas vide
 db.orders.push(
-  { id: 'c90', code: 'CS-2031', parEtudiant: true, commerceId: 's4', commerce: { id: 's4', nom: 'Restaurant El Medina', adresse: 'Avenue de Carthage, Tunis' }, lignes: [{ offreId: 'o10', titre: 'Couscous au poulet', quantite: 1, prixUnitaire: 4000, prixInitial: 9000 }], montantTotal: 4000, statut: 'RECUPEREE', createdAt: h(-50), paiement: { statut: 'REUSSI', reference: 'KNT-DEMO-CS-2031' } },
-  { id: 'c91', code: 'CS-2039', parEtudiant: true, commerceId: 's5', commerce: { id: 's5', nom: 'Pâtisserie Essaada', adresse: 'Montfleury, Tunis' }, lignes: [{ offreId: 'o12', titre: 'Box makroudh et baklawa', quantite: 2, prixUnitaire: 6000, prixInitial: 15000 }], montantTotal: 12000, statut: 'RECUPEREE', createdAt: h(-26), paiement: { statut: 'REUSSI', reference: 'KNT-DEMO-CS-2039' } },
+  { id: 'c90', code: 'CS-2031', parEtudiant: true, commerceId: 's4', commerce: { id: 's4', nom: 'Restaurant El Medina', adresse: 'Avenue de Carthage, Tunis' }, lignes: [{ offreId: 'o10', titre: 'Couscous au poulet', quantite: 1, prixUnitaire: 4000, prixInitial: 9000 }], montantTotal: 4000, statut: 'RECUPEREE', dateCommande: h(-50), paiement: { statut: 'REUSSI', reference: 'KNT-DEMO-CS-2031' } },
+  { id: 'c91', code: 'CS-2039', parEtudiant: true, commerceId: 's5', commerce: { id: 's5', nom: 'Pâtisserie Essaada', adresse: 'Montfleury, Tunis' }, lignes: [{ offreId: 'o12', titre: 'Box makroudh et baklawa', quantite: 2, prixUnitaire: 6000, prixInitial: 15000 }], montantTotal: 12000, statut: 'RECUPEREE', dateCommande: h(-26), paiement: { statut: 'REUSSI', reference: 'KNT-DEMO-CS-2039' } },
 )
 
 // Espace étudiant : commandes passées depuis le panier (Eya)
-const commandesEtudiant = () => db.orders.filter((o) => o.parEtudiant).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+const commandesEtudiant = () => db.orders.filter((o) => o.parEtudiant).sort((a, b) => b.dateCommande.localeCompare(a.dateCommande))
 const toutesLesOffres = () => [...db.offers, ...db.offresAutres]
 function changerStock(lignes, signe) {
   for (const l of lignes) {
@@ -85,7 +85,7 @@ export const mock = {
       montantTotal: detail.reduce((s, { offre, quantite }) => s + offre.prixReduit * quantite, 0),
       heureDebutRecuperation: detail.map((d) => d.offre.heureDebutRecuperation).sort()[0],
       heureFinRecuperation: detail.map((d) => d.offre.heureFinRecuperation).sort().at(-1),
-      statut: 'EN_ATTENTE_PAIEMENT', createdAt: new Date().toISOString(), paiement: null,
+      statut: 'EN_ATTENTE_PAIEMENT', dateCommande: new Date().toISOString(), paiement: null,
     }
     changerStock(commande.lignes, -1)
     db.orders.unshift(commande)
@@ -110,6 +110,19 @@ export const mock = {
       c.statut = 'ANNULEE'
       c.paiement = { ...c.paiement, statut: 'ECHOUE' }
       changerStock(c.lignes, +1) // quantités remises en vente
+    }
+    return wait(c)
+  },
+  // POST /orders/:id/cancel : même effet qu'un paiement refusé (seulement si la commande est en attente)
+  annulerCommande: (id) => {
+    const c = db.orders.find((o) => o.id === id)
+    if (!c) return fail('COMMANDE_INTROUVABLE', 'Commande introuvable.')
+    if (c.statut === 'EN_ATTENTE_PAIEMENT') {
+      c.statut = 'ANNULEE'
+      if (c.paiement) c.paiement = { ...c.paiement, statut: 'ECHOUE' }
+      changerStock(c.lignes, +1)
+    } else if (c.statut !== 'ANNULEE') {
+      return fail('COMMANDE_DEJA_PAYEE', 'Cette commande est déjà payée : elle ne peut plus être annulée.')
     }
     return wait(c)
   },

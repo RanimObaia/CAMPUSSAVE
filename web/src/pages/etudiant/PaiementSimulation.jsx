@@ -19,10 +19,16 @@ export default function PaiementSimulation() {
     return <div className="cs cs-login"><p>Cette page n'existe qu'en mode démo.</p></div>
   }
 
+  // Comme Konnect : paiement réussi → le webhook confirme puis retour sur successUrl ;
+  // paiement refusé → retour sur failUrl (&echec=1), sans rien confirmer
   async function terminer(reussi) {
     setEnvoi(true)
-    await api.simulerResultatPaiement(id, reussi) // ce que ferait le webhook Konnect
-    navigate(`/paiement/retour?commande=${id}`)
+    if (reussi) {
+      await api.simulerResultatPaiement(id, true) // ce que fait le webhook Konnect
+      navigate(`/paiement/retour?commande=${id}`)
+    } else {
+      navigate(`/paiement/retour?commande=${id}&echec=1`)
+    }
   }
 
   return (
