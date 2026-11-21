@@ -49,8 +49,14 @@ function offresAvecCommerce() {
   })
 }
 
+// Deux commandes déjà récupérées par l'étudiant démo, pour que son tableau de bord ne soit pas vide
+db.orders.push(
+  { id: 'c90', code: 'CS-2031', parEtudiant: true, commerceId: 's4', commerce: { id: 's4', nom: 'Restaurant El Medina', adresse: 'Avenue de Carthage, Tunis' }, lignes: [{ offreId: 'o10', titre: 'Couscous au poulet', quantite: 1, prixUnitaire: 4000, prixInitial: 9000 }], montantTotal: 4000, statut: 'RECUPEREE', createdAt: h(-50), paiement: { statut: 'REUSSI', reference: 'KNT-DEMO-CS-2031' } },
+  { id: 'c91', code: 'CS-2039', parEtudiant: true, commerceId: 's5', commerce: { id: 's5', nom: 'Pâtisserie Essaada', adresse: 'Montfleury, Tunis' }, lignes: [{ offreId: 'o12', titre: 'Box makroudh et baklawa', quantite: 2, prixUnitaire: 6000, prixInitial: 15000 }], montantTotal: 12000, statut: 'RECUPEREE', createdAt: h(-26), paiement: { statut: 'REUSSI', reference: 'KNT-DEMO-CS-2039' } },
+)
+
 // Espace étudiant : commandes passées depuis le panier (Eya)
-const commandesEtudiant = () => db.orders.filter((o) => o.parEtudiant)
+const commandesEtudiant = () => db.orders.filter((o) => o.parEtudiant).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 const toutesLesOffres = () => [...db.offers, ...db.offresAutres]
 function changerStock(lignes, signe) {
   for (const l of lignes) {
@@ -75,7 +81,7 @@ export const mock = {
     const commande = {
       id: `c${++seq}`, code: `CS-${2000 + seq}`, parEtudiant: true, commerceId,
       commerce: { id: detail[0].offre.commerce.id, nom: detail[0].offre.commerce.nom, adresse: detail[0].offre.commerce.adresse },
-      lignes: detail.map(({ offre, quantite }) => ({ offreId: offre.id, titre: offre.titre, quantite, prixUnitaire: offre.prixReduit })),
+      lignes: detail.map(({ offre, quantite }) => ({ offreId: offre.id, titre: offre.titre, quantite, prixUnitaire: offre.prixReduit, prixInitial: offre.prixInitial })),
       montantTotal: detail.reduce((s, { offre, quantite }) => s + offre.prixReduit * quantite, 0),
       heureDebutRecuperation: detail.map((d) => d.offre.heureDebutRecuperation).sort()[0],
       heureFinRecuperation: detail.map((d) => d.offre.heureFinRecuperation).sort().at(-1),
@@ -112,6 +118,17 @@ export const mock = {
     return c ? wait(c) : fail('COMMANDE_INTROUVABLE', 'Commande introuvable.')
   },
   mesCommandes: () => wait(commandesEtudiant()),
+  // GET /stats/student : chiffres du tableau de bord étudiant (commandes payées seulement)
+  studentStats: () => {
+    const payees = commandesEtudiant().filter((c) => ['PAYEE', 'PRETE', 'RECUPEREE'].includes(c.statut))
+    const lignes = payees.flatMap((c) => c.lignes)
+    return wait({
+      commandes: payees.length,
+      depenses: payees.reduce((s, c) => s + c.montantTotal, 0),
+      economies: lignes.reduce((s, l) => s + ((l.prixInitial || l.prixUnitaire) - l.prixUnitaire) * l.quantite, 0),
+      repasSauves: lignes.reduce((s, l) => s + l.quantite, 0),
+    })
+  },
   // Étudiant : offres visibles (actives, en stock, pas expirées, commerce validé) + filtres de recherche
   listOffers: (filtres = {}) => {
     const q = (filtres.q || '').trim().toLowerCase()

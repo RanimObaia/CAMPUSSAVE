@@ -20,6 +20,7 @@ function Contenu() {
     { to: '/', label: 'Offres', end: true },
     { to: '/panier', label: 'Mon panier', badge: nbArticles },
     { to: '/commandes', label: 'Mes commandes' },
+    { to: '/tableau-de-bord', label: 'Tableau de bord' },
   ]
   return (
     <div className="cs et">

@@ -93,6 +93,13 @@ a.et-commande:hover { border-color: var(--green); }
 .et-simu-carte input { width: 100%; min-width: 0; }
 .et-simu-carte input[readonly] { background: #f6f8f3; }
 
+/* Tableau de bord étudiant */
+.et .cs-grid { margin: 0; }
+a.et-a-retirer { border-left: 4px solid var(--green); }
+a.et-a-retirer .cs-btn { pointer-events: none; }
+.et .cs-tablebox a { white-space: nowrap; }
+.et-nav { flex-wrap: wrap; }
+
 @media (max-width: 1000px) {
   .et-panier { grid-template-columns: 1fr; }
   .et-resume { position: static; }
@@ -105,6 +112,9 @@ a.et-commande:hover { border-color: var(--green); }
 
 @media (max-width: 720px) {
   .et-header { padding: 12px 16px; gap: 12px; }
+  .et-nav { order: 3; flex: 1 1 100%; gap: 2px; }
+  .et-nav a { padding: 8px 10px; }
+  .et-user { margin-left: auto; }
   .et-main { padding: 20px 16px; }
   .et-select { flex: 1 1 100%; }
   .et-detail { grid-template-columns: 1fr; }
