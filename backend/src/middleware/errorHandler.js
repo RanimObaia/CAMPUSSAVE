@@ -19,10 +19,18 @@ function notFound(req, res) {
 // Dernier middleware : transforme toute erreur en { code, message }.
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, req, res, next) {
+  // Corps de requête qui n'est pas du JSON valide (envoyé par express.json)
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      code: 'JSON_INVALIDE',
+      message: "Le corps de la requête n'est pas un JSON valide.",
+    });
+  }
+
   const status = err.status || 500;
   if (status >= 500) console.error(err);
   res.status(status).json({
-    code: err.code && status < 500 ? err.code : 'ERREUR_SERVEUR',
+    code: status < 500 ? err.code || 'REQUETE_INVALIDE' : 'ERREUR_SERVEUR',
     message: status < 500 ? err.message : 'Erreur interne du serveur.',
   });
 }
