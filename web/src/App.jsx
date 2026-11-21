@@ -9,6 +9,7 @@ import Inscription from './pages/Inscription'
 import EtudiantLayout from './components/EtudiantLayout'
 import OffresEtudiant from './pages/etudiant/Offres'
 import OffreDetail from './pages/etudiant/OffreDetail'
+import Panier from './pages/etudiant/Panier'
 import MerchantDashboard from './pages/merchant/Dashboard'
 import Offers from './pages/merchant/Offers'
 import OfferForm from './pages/merchant/OfferForm'
@@ -45,6 +46,7 @@ export default function App() {
             <Route element={<EtudiantLayout />}>
               <Route path="/" element={<OffresEtudiant />} />
               <Route path="/offres/:id" element={<OffreDetail />} />
+              <Route path="/panier" element={<Panier />} />
             </Route>
           </Route>
           <Route element={<ProtectedRoute role={ROLES.MERCHANT} />}>
