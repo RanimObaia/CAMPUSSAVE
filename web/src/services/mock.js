@@ -2,6 +2,10 @@
 const wait = (v) => new Promise((r) => setTimeout(() => r(structuredClone(v)), 150))
 const h = (n) => new Date(Date.now() + n * 3600e3).toISOString()
 let seq = 100
+// Une commande est « payée » à partir de PAYEE (ni en attente de paiement, ni annulée)
+const STATUTS_PAYES = ['PAYEE', 'PRETE', 'RECUPEREE']
+// Jour (AAAA-MM-JJ) à l'heure de Tunis
+const jourTunis = (d) => new Date(d).toLocaleDateString('fr-CA', { timeZone: 'Africa/Tunis' })
 
 const db = {
   shop: { id: 's1', nom: 'Boulangerie Le Fournil', description: 'Pain et viennoiseries du jour', type: 'BOULANGERIE', adresse: 'Rue de la Liberté, Tunis', latitude: 36.8065, longitude: 10.1815, horairesOuverture: '07:00 - 20:00', statutValidation: 'VALIDE' },
@@ -174,13 +178,27 @@ export const mock = {
     o.statut = 'RECUPEREE'
     return wait(o)
   },
-  merchantStats: () => wait({
-    offresActives: db.offers.filter((o) => o.statut === 'ACTIVE').length,
-    commandesDuJour: db.orders.length,
-    chiffreAffaires: db.orders.filter((o) => o.statut !== 'ANNULEE').reduce((s, o) => s + o.montantTotal, 0),
-    repasSauves: db.orders.filter((o) => o.statut === 'RECUPEREE').reduce((s, o) => s + o.lignes.reduce((n, l) => n + l.quantite, 0), 0),
+  // GET /stats/merchant : seulement les commandes payées (PAYEE, PRETE, RECUPEREE) de son commerce.
+  // « Du jour » et « du mois » se calculent à l'heure de Tunis, comme le fera le backend.
+  merchantStats: () => {
+    const payees = db.orders.filter((o) => (!o.commerceId || o.commerceId === db.shop.id) && STATUTS_PAYES.includes(o.statut))
+    const duJour = payees.filter((o) => jourTunis(o.createdAt) === jourTunis(new Date()))
+    const duMois = payees.filter((o) => o.statut === 'RECUPEREE' && jourTunis(o.createdAt).slice(0, 7) === jourTunis(new Date()).slice(0, 7))
+    return wait({
+      offresActives: db.offers.filter((o) => o.statut === 'ACTIVE' && o.quantiteDisponible > 0 && new Date(o.heureFinRecuperation).getTime() > Date.now()).length,
+      commandesDuJour: duJour.length,
+      chiffreAffaires: duJour.reduce((s, o) => s + o.montantTotal, 0),
+      repasSauves: duMois.reduce((s, o) => s + o.lignes.reduce((n, l) => n + l.quantite, 0), 0),
+    })
+  },
+  // GET /stats/admin : utilisateurs = étudiants + commerçants (sans les admins) ; commandes et paiements = commandes payées
+  adminStats: () => wait({
+    utilisateurs: db.users.filter((u) => u.role !== 'admin').length,
+    commercesValides: db.shops.filter((s) => s.statutValidation === 'VALIDE').length,
+    commercesEnAttente: db.shops.filter((s) => s.statutValidation === 'EN_ATTENTE').length,
+    commandes: db.orders.filter((o) => STATUTS_PAYES.includes(o.statut)).length,
+    paiements: db.orders.filter((o) => STATUTS_PAYES.includes(o.statut)).length,
   }),
-  adminStats: () => wait({ utilisateurs: db.users.length, commercesValides: db.shops.filter((s) => s.statutValidation === 'VALIDE').length, commercesEnAttente: db.shops.filter((s) => s.statutValidation === 'EN_ATTENTE').length, commandes: db.orders.length, paiements: db.orders.filter((o) => o.statut !== 'ANNULEE' && o.statut !== 'EN_ATTENTE_PAIEMENT').length }),
   adminShops: (statut) => wait(db.shops.filter((s) => !statut || s.statutValidation === statut)),
   validateShop: (id, decision) => { db.shops = db.shops.map((s) => (s.id === id ? { ...s, statutValidation: decision } : s)); return wait({}) },
   adminUsers: () => wait(db.users),
