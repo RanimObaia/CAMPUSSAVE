@@ -14,7 +14,7 @@ router.use('/offers', require('./offers.routes'));
 
 // À brancher au fur et à mesure :
 // router.use('/orders', require('./orders.routes'));
-// router.use('/payments', require('./payments.routes'));
+router.use('/payments', require('./payments.routes'));
 // router.use('/stats', require('./stats.routes'));
 
 module.exports = router;
