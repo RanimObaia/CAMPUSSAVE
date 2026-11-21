@@ -29,6 +29,7 @@ rectangle "Plateforme CampusSave" {
     usecase "Réserver / valider\nla commande" as RES
     usecase "Payer en ligne" as PAY
     usecase "Recevoir le QR code" as QR
+    usecase "Recevoir l'email\nde confirmation\n(commande + QR code)" as MAIL
     usecase "Suivre ses commandes" as SUIVI
     usecase "Tableau de bord\nétudiant" as DBE
   }
@@ -88,6 +89,7 @@ PAN ..> CHOIX : <<include>>
 RES ..> PAN : <<include>>
 PAY ..> RES : <<include>>
 PAY ..> QR : <<include>>
+PAY ..> MAIL : <<include>>
 VAL ..> QR : <<include>>
 PUB ..> COMINFO : <<include>>
 COMINS ..> VC : <<include>>
