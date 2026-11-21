@@ -19,4 +19,16 @@ const STATUT_VALIDATION = Object.freeze({
   REFUSE: 'REFUSE',
 });
 
-module.exports = { ROLES, ROLES_INSCRIPTION, TYPES_COMMERCE, STATUT_VALIDATION };
+// Catégories d'offres, identiques à web/src/config/constants.js
+const CATEGORIES_OFFRE = ['BOULANGERIE', 'PLATS', 'PATISSERIE', 'BOISSONS'];
+
+const STATUT_OFFRE = Object.freeze({
+  ACTIVE: 'ACTIVE',
+  EPUISEE: 'EPUISEE', // quantité à 0
+  EXPIREE: 'EXPIREE', // heure de fin de retrait passée (calculé à la lecture)
+  RETIREE: 'RETIREE', // retirée par le commerçant
+});
+
+module.exports = {
+  ROLES, ROLES_INSCRIPTION, TYPES_COMMERCE, STATUT_VALIDATION, CATEGORIES_OFFRE, STATUT_OFFRE,
+};

@@ -106,4 +106,8 @@ async function valider(req, res) {
   res.json(await lireCommerce(commerce.id));
 }
 
-module.exports = { listePublique, monCommerce, detail, creer, modifier, listeAdmin, valider };
+module.exports = {
+  listePublique, monCommerce, detail, creer, modifier, listeAdmin, valider,
+  // utilisé aussi par les offres
+  commerceDuCommercant,
+};
