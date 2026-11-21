@@ -20,6 +20,17 @@ const db = {
     { id: 's3', nom: 'Café Le Jasmin', type: 'CAFETERIA', adresse: 'Ariana', statutValidation: 'EN_ATTENTE' },
     { id: 's1', nom: 'Boulangerie Le Fournil', type: 'BOULANGERIE', adresse: 'Tunis', statutValidation: 'VALIDE' },
   ],
+  // Offres d'autres commerces validés, pour l'espace étudiant (Eya)
+  offresAutres: [
+    { id: 'o10', commerceId: 's4', titre: 'Couscous au poulet', description: 'Portion généreuse, préparée ce midi.', categorie: 'PLATS', prixInitial: 9000, prixReduit: 4000, quantiteDisponible: 5, heureDebutRecuperation: h(1), heureFinRecuperation: h(3), statut: 'ACTIVE' },
+    { id: 'o11', commerceId: 's4', titre: 'Sandwich thon-harissa', description: '', categorie: 'PLATS', prixInitial: 5000, prixReduit: 2500, quantiteDisponible: 8, heureDebutRecuperation: h(0.5), heureFinRecuperation: h(2), statut: 'ACTIVE' },
+    { id: 'o12', commerceId: 's5', titre: 'Box makroudh et baklawa', description: '6 pièces assorties.', categorie: 'PATISSERIE', prixInitial: 15000, prixReduit: 6000, quantiteDisponible: 3, heureDebutRecuperation: h(2), heureFinRecuperation: h(5), statut: 'ACTIVE' },
+    { id: 'o13', commerceId: 's5', titre: 'Jus d\'orange pressé (50 cl)', description: '', categorie: 'BOISSONS', prixInitial: 4000, prixReduit: 2000, quantiteDisponible: 10, heureDebutRecuperation: h(0.5), heureFinRecuperation: h(4), statut: 'ACTIVE' },
+  ],
+  commercesAutres: [
+    { id: 's4', nom: 'Restaurant El Medina', type: 'RESTAURANT', adresse: 'Avenue de Carthage, Tunis', horairesOuverture: '11:00 - 22:00', statutValidation: 'VALIDE' },
+    { id: 's5', nom: 'Pâtisserie Essaada', type: 'PATISSERIE', adresse: 'Montfleury, Tunis', horairesOuverture: '08:00 - 21:00', statutValidation: 'VALIDE' },
+  ],
   users: [
     { id: 'u1', nom: 'Étudiant', prenom: 'Démo', email: 'etudiant@demo.tn', role: 'student', actif: true },
     { id: 'u2', nom: 'Fournil', prenom: 'Le', email: 'merchant@demo.tn', role: 'merchant', actif: true },
@@ -29,7 +40,32 @@ const db = {
 
 const fail = (code, message) => Promise.reject(Object.assign(new Error(message), { code }))
 
+// Espace étudiant : toutes les offres avec leur commerce (le Fournil = la boutique du commerçant démo)
+function offresAvecCommerce() {
+  const commerces = [db.shop, ...db.commercesAutres]
+  return [...db.offers.map((o) => ({ ...o, commerceId: db.shop.id })), ...db.offresAutres].map((o) => {
+    const c = commerces.find((x) => x.id === o.commerceId)
+    return { ...o, commerce: { id: c.id, nom: c.nom, type: c.type, adresse: c.adresse, statutValidation: c.statutValidation } }
+  })
+}
+
 export const mock = {
+  // Étudiant : offres visibles (actives, en stock, pas expirées, commerce validé) + filtres de recherche
+  listOffers: (filtres = {}) => {
+    const q = (filtres.q || '').trim().toLowerCase()
+    const maintenant = Date.now()
+    const liste = offresAvecCommerce().filter((o) =>
+      o.statut === 'ACTIVE' && o.quantiteDisponible > 0 && new Date(o.heureFinRecuperation).getTime() > maintenant &&
+      o.commerce.statutValidation === 'VALIDE' &&
+      (!q || o.titre.toLowerCase().includes(q) || o.description.toLowerCase().includes(q) || o.commerce.nom.toLowerCase().includes(q)) &&
+      (!filtres.categorie || o.categorie === filtres.categorie) &&
+      (!filtres.prixMax || o.prixReduit <= Number(filtres.prixMax)))
+    return wait(liste)
+  },
+  getOffreDetail: (id) => {
+    const o = offresAvecCommerce().find((x) => x.id === id)
+    return o ? wait(o) : fail('OFFRE_INTROUVABLE', 'Cette offre est introuvable.')
+  },
   // Inscription fictive : même règles et mêmes erreurs que POST /auth/register
   register: (data) => {
     const email = data.email.trim().toLowerCase()
