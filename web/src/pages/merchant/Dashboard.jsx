@@ -14,9 +14,9 @@ export default function Dashboard() {
       {(stats.erreur || orders.erreur) && <div className="cs-error" role="alert">{stats.erreur || orders.erreur}</div>}
       <div className="cs-grid">
         <Stat label="Offres actives" valeur={s?.offresActives ?? '—'} />
-        <Stat label="Commandes du jour" valeur={s?.commandesDuJour ?? '—'} />
-        <Stat label="Chiffre d'affaires" valeur={s ? dt(s.chiffreAffaires) : '—'} />
-        <Stat label="Repas sauvés" valeur={s?.repasSauves ?? '—'} />
+        <Stat label="Commandes du jour" valeur={s?.commandesDuJour ?? '—'} note="payées aujourd'hui" />
+        <Stat label="Chiffre d'affaires" valeur={s ? dt(s.chiffreAffaires) : '—'} note="aujourd'hui" />
+        <Stat label="Repas sauvés" valeur={s?.repasSauves ?? '—'} note="ce mois-ci" />
       </div>
       <h2>Dernières commandes</h2>
       <Table colonnes={['Code', 'Date', 'Montant', 'Statut']}
