@@ -14,6 +14,7 @@ import PaiementSimulation from './pages/etudiant/PaiementSimulation'
 import PaiementRetour from './pages/etudiant/PaiementRetour'
 import MesCommandes from './pages/etudiant/MesCommandes'
 import CommandeDetail from './pages/etudiant/CommandeDetail'
+import TableauDeBord from './pages/etudiant/TableauDeBord'
 import MerchantDashboard from './pages/merchant/Dashboard'
 import Offers from './pages/merchant/Offers'
 import OfferForm from './pages/merchant/OfferForm'
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="/paiement/retour" element={<PaiementRetour />} />
               <Route path="/commandes" element={<MesCommandes />} />
               <Route path="/commandes/:id" element={<CommandeDetail />} />
+              <Route path="/tableau-de-bord" element={<TableauDeBord />} />
             </Route>
             {/* Mode démo : page de paiement simulée, hors du menu étudiant */}
             <Route path="/paiement/simulation/:id" element={<PaiementSimulation />} />

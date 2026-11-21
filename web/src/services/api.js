@@ -33,6 +33,7 @@ const real = {
   initPaiement: (commandeId) => request('/payments/init', { method: 'POST', body: { commandeId } }),
   getCommande: (id) => request(`/orders/${id}`),
   mesCommandes: () => request('/orders/mine'),
+  studentStats: () => request('/stats/student'),
   getMyShop: () => request('/shops/mine'),
   saveShop: (data) => (data.id ? request(`/shops/${data.id}`, { method: 'PUT', body: data }) : request('/shops', { method: 'POST', body: data })),
   listMyOffers: () => request('/offers?mine=true'),
