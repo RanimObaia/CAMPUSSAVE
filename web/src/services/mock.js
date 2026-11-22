@@ -172,7 +172,13 @@ export const mock = {
     db.users.push(user)
     return wait(user)
   },
-  getMe: (email) => wait(db.users.find((u) => u.email === email) || { id: 'a1', nom: 'Admin', prenom: 'Démo', email, role: email.startsWith('admin') ? 'admin' : 'merchant', actif: true }),
+  getMe: (email = 'merchant@demo.tn') => wait(db.users.find((u) => u.email === email) || { id: 'a1', nom: 'Admin', prenom: 'Démo', email, role: email.startsWith('admin') ? 'admin' : 'merchant', actif: true }),
+    updateMe: (data) => {
+    const user = db.users.find((u) => u.email === 'merchant@demo.tn')
+    if (!user) return fail('UTILISATEUR_INTROUVABLE', 'Utilisateur introuvable.')
+    Object.assign(user, data)
+    return wait(user)
+  },
   getMyShop: () => wait(db.shop),
   saveShop: (data) => { db.shop = { ...db.shop, ...data }; return wait(db.shop) },
   listMyOffers: () => wait(db.offers),

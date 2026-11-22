@@ -21,6 +21,7 @@ import OfferForm from './pages/merchant/OfferForm'
 import Orders from './pages/merchant/Orders'
 import Scan from './pages/merchant/Scan'
 import Shop from './pages/merchant/Shop'
+import Profil from './pages/merchant/Profil'
 import AdminDashboard from './pages/admin/Dashboard'
 import Shops from './pages/admin/Shops'
 import Users from './pages/admin/Users'
@@ -31,6 +32,7 @@ const LIENS_COMMERCANT = [
   { to: '/commercant/commandes', label: 'Commandes' },
   { to: '/commercant/retrait', label: 'Valider un retrait' },
   { to: '/commercant/commerce', label: 'Mon commerce' },
+  { to: '/commercant/profil', label: 'Mon profil' },
 ]
 const LIENS_ADMIN = [
   { to: '/admin', label: 'Vue globale', end: true },
@@ -69,6 +71,7 @@ export default function App() {
               <Route path="commandes" element={<Orders />} />
               <Route path="retrait" element={<Scan />} />
               <Route path="commerce" element={<Shop />} />
+              <Route path="profil" element={<Profil />} />
             </Route>
           </Route>
           <Route element={<ProtectedRoute role={ROLES.ADMIN} />}>
