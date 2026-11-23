@@ -20,6 +20,7 @@ const real = {
   // Inscription (étudiant ou commerçant) : route publique, sans jeton
   register: (data) => request('/auth/register', { method: 'POST', body: data }),
   getMe: () => request('/users/me'),
+  updateMe: (data) => request('/users/me', { method: 'PUT', body: data }),
   // Étudiant : recherche d'offres (produit ou commerce, catégorie, prix maximum en millimes)
   listOffers: (filtres = {}) => {
     const params = new URLSearchParams()
