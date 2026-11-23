@@ -47,5 +47,15 @@ router.post(
 router.get("/", requireAuth, requireRole("merchant"), listForMerchant);
 router.get("/:id", requireAuth, getOrder);
 router.patch("/:id/ready", requireAuth, requireRole("merchant"), markReady);
+router.post("/:id/cancel", requireAuth, requireRole("student"), cancelOrder);
 
 module.exports = router;
+const {
+  createOrder,
+  listMine,
+  getOrder,
+  cancelOrder,
+  listForMerchant,
+  markReady,
+  validateQr,
+} = require("../controllers/orders.controller");
