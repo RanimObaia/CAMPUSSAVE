@@ -29,3 +29,8 @@ mobile/pubspec.lock
 Thumbs.db
 .idea/
 .vscode/
+
+# --- Firebase emulators ---
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
