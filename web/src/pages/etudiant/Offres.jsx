@@ -5,7 +5,9 @@ import { api } from '../../services/api'
 import { useChargement } from '../../hooks'
 import { useAuth } from '../../context/AuthContext'
 import { dt } from '../../utils/format'
-import { CATEGORIES_AFFICHAGE, categorie, heure, reduction } from '../../utils/categories'
+import { CATEGORIES_AFFICHAGE, finDans, heure, reduction } from '../../utils/categories'
+import Cloche from '../../components/Cloche'
+import Icone from '../../components/Icone'
 
 // Prix maximum proposés (en millimes : 5000 = 5 DT)
 const PRIX_MAX = [
@@ -38,32 +40,43 @@ export default function Offres() {
     setTexte(''); setQ(''); setCat(''); setPrixMax('')
   }
 
+  const nb = offres?.length ?? 0
+
   return (
     <>
-      <div>
-        <h1>Bonjour {user?.prenom} 👋</h1>
-        <p className="cs-sub">Les invendus des commerces autour de l'ESSECT, à prix réduit.</p>
-      </div>
+      <section className="et-hero">
+        <div>
+          <h1>Bonjour {user?.prenom}.</h1>
+          <p className="cs-sub">Les invendus du jour des commerces autour de l'ESSECT, à prix réduit. Réserve, paie en ligne, récupère avec ton QR code.</p>
+        </div>
+        {offres && (
+          <p className="et-compte" aria-live="polite">
+            <b>{nb}</b>
+            <span>offre{nb > 1 ? 's' : ''} à sauver</span>
+          </p>
+        )}
+      </section>
 
-      <section className="et-recherche" aria-label="Recherche">
+      <form className="et-recherche" role="search" onSubmit={(e) => e.preventDefault()}>
+        <Icone nom="loupe" />
         <input
           type="search"
           className="et-input"
-          placeholder="Rechercher un produit ou un commerce…"
+          placeholder="Couscous, viennoiseries, nom d'un commerce…"
           value={texte}
           onChange={(e) => setTexte(e.target.value)}
           aria-label="Rechercher un produit ou un commerce"
         />
-        <select className="et-input et-select" value={prixMax} onChange={(e) => setPrixMax(e.target.value)} aria-label="Prix maximum">
+        <select className="et-select" value={prixMax} onChange={(e) => setPrixMax(e.target.value)} aria-label="Prix maximum">
           {PRIX_MAX.map((p) => <option key={p.valeur} value={p.valeur}>{p.label}</option>)}
         </select>
-      </section>
+      </form>
 
       <div className="et-chips" role="group" aria-label="Catégories">
-        <button type="button" className={cat === '' ? 'actif' : ''} onClick={() => setCat('')}>Toutes</button>
+        <button type="button" className={cat === '' ? 'actif' : ''} aria-pressed={cat === ''} onClick={() => setCat('')}>Toutes</button>
         {Object.entries(CATEGORIES_AFFICHAGE).map(([code, c]) => (
-          <button type="button" key={code} className={cat === code ? 'actif' : ''} onClick={() => setCat(code)}>
-            {c.icone} {c.label}
+          <button type="button" key={code} className={cat === code ? 'actif' : ''} aria-pressed={cat === code} onClick={() => setCat(code)}>
+            <Icone nom={code} taille={18} /> {c.label}
           </button>
         ))}
       </div>
@@ -71,40 +84,35 @@ export default function Offres() {
       {erreur && <div className="cs-error" role="alert">{erreur}</div>}
       {chargement && !offres && <p className="cs-empty">Chargement des offres…</p>}
 
-      {offres && (
-        <p className="cs-sub" aria-live="polite">
-          {offres.length} offre{offres.length > 1 ? 's' : ''} disponible{offres.length > 1 ? 's' : ''}
-        </p>
-      )}
-
       {offres && offres.length === 0 && (
         <div className="cs-card cs-empty">
-          Aucune offre ne correspond à ta recherche.
+          {filtresActifs ? 'Aucune offre ne correspond à ta recherche.' : "Pas d'offre pour le moment. Les commerces publient leurs invendus en fin de journée : reviens un peu plus tard."}
           {filtresActifs && <div><button type="button" className="cs-btn et-mt" onClick={effacer}>Effacer les filtres</button></div>}
         </div>
       )}
 
       <div className="et-grille">
-        {offres?.map((o) => (
-          <Link key={o.id} to={`/offres/${o.id}`} className="et-carte">
-            <div className="et-visuel" aria-hidden="true">
-              {o.photoUrl ? <img src={o.photoUrl} alt="" /> : <span>{categorie(o.categorie).icone}</span>}
-              <b className="et-remise">-{reduction(o)} %</b>
-            </div>
-            <div className="et-corps">
-              <span className="et-commerce">{o.commerce?.nom}</span>
-              <h2 className="et-titre">{o.titre}</h2>
-              <div className="et-prix">
-                <b>{dt(o.prixReduit)}</b>
-                <s>{dt(o.prixInitial)}</s>
+        {offres?.map((o) => {
+          const fin = finDans(o.heureFinRecuperation)
+          return (
+            <Link key={o.id} to={`/offres/${o.id}`} className="et-carte">
+              <Cloche code={o.categorie} photoUrl={o.photoUrl} remise={reduction(o)} />
+              <div className="et-corps">
+                <span className="et-commerce">{o.commerce?.nom}</span>
+                <h2 className="et-titre">{o.titre}</h2>
+                <div className="et-prix">
+                  <b>{dt(o.prixReduit)}</b>
+                  <s>{dt(o.prixInitial)}</s>
+                </div>
+                <div className="et-infos">
+                  <span><Icone nom="horloge" taille={16} /> {heure(o.heureDebutRecuperation)} – {heure(o.heureFinRecuperation)}</span>
+                  {fin && <span className={`et-fin${fin.urgent ? ' urgent' : ''}`}>Se termine dans {fin.texte}</span>}
+                  <span>{o.quantiteDisponible} restante{o.quantiteDisponible > 1 ? 's' : ''}</span>
+                </div>
               </div>
-              <div className="et-infos">
-                <span>🕒 {heure(o.heureDebutRecuperation)} – {heure(o.heureFinRecuperation)}</span>
-                <span>Reste {o.quantiteDisponible}</span>
-              </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          )
+        })}
       </div>
     </>
   )

@@ -6,6 +6,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../services/api'
 import { ROLES } from '../config/constants'
+import EcranAuth from '../components/EcranAuth'
 
 const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/' }
 
@@ -75,9 +76,9 @@ export default function Inscription() {
   }
 
   return (
-    <div className="cs cs-login">
+    <EcranAuth>
       <form onSubmit={submit} noValidate>
-        <h1>Créer un compte</h1>
+        <h2>Créer un compte</h2>
         <p className="cs-sub">Rejoins CampusSave et sauve des repas à petit prix.</p>
 
         {erreur && <div className="cs-error" role="alert">{erreur}</div>}
@@ -96,29 +97,35 @@ export default function Inscription() {
           </label>
         </fieldset>
 
-        <div className="cs-field"><label htmlFor="prenom">Prénom</label>
-          <input id="prenom" autoComplete="given-name" value={form.prenom} onChange={changer('prenom')} /></div>
-        <div className="cs-field"><label htmlFor="nom">Nom</label>
-          <input id="nom" autoComplete="family-name" value={form.nom} onChange={changer('nom')} /></div>
+        <div className="auth-duo">
+          <div className="cs-field"><label htmlFor="prenom">Prénom</label>
+            <input id="prenom" autoComplete="given-name" value={form.prenom} onChange={changer('prenom')} /></div>
+          <div className="cs-field"><label htmlFor="nom">Nom</label>
+            <input id="nom" autoComplete="family-name" value={form.nom} onChange={changer('nom')} /></div>
+        </div>
         <div className="cs-field"><label htmlFor="email">Adresse e-mail</label>
           <input id="email" type="email" autoComplete="email" value={form.email} onChange={changer('email')} /></div>
-        <div className="cs-field"><label htmlFor="tel">Téléphone (8 chiffres)</label>
-          <input id="tel" type="tel" inputMode="numeric" maxLength={8} autoComplete="tel"
-            value={form.telephone} onChange={changer('telephone')} /></div>
+        <div className="auth-duo">
+          <div className="cs-field"><label htmlFor="tel">Téléphone (8 chiffres)</label>
+            <input id="tel" type="tel" inputMode="numeric" maxLength={8} autoComplete="tel"
+              value={form.telephone} onChange={changer('telephone')} /></div>
+          {form.role === ROLES.STUDENT && (
+            <div className="cs-field"><label htmlFor="etab">Établissement</label>
+              <input id="etab" value={form.etablissement} onChange={changer('etablissement')} /></div>
+          )}
+        </div>
 
-        {form.role === ROLES.STUDENT && (
-          <div className="cs-field"><label htmlFor="etab">Établissement</label>
-            <input id="etab" value={form.etablissement} onChange={changer('etablissement')} /></div>
-        )}
-
-        <div className="cs-field"><label htmlFor="pw">Mot de passe (6 caractères minimum)</label>
-          <input id="pw" type="password" autoComplete="new-password" value={form.motDePasse} onChange={changer('motDePasse')} /></div>
-        <div className="cs-field"><label htmlFor="pw2">Confirmer le mot de passe</label>
-          <input id="pw2" type="password" autoComplete="new-password" value={form.confirmation} onChange={changer('confirmation')} /></div>
+        <div className="auth-duo">
+          <div className="cs-field"><label htmlFor="pw">Mot de passe</label>
+            <input id="pw" type="password" autoComplete="new-password" aria-describedby="pw-aide" value={form.motDePasse} onChange={changer('motDePasse')} /></div>
+          <div className="cs-field"><label htmlFor="pw2">Confirmation</label>
+            <input id="pw2" type="password" autoComplete="new-password" value={form.confirmation} onChange={changer('confirmation')} /></div>
+        </div>
+        <p id="pw-aide" className="cs-sub auth-aide">6 caractères minimum.</p>
 
         <button className="cs-btn primary" disabled={envoi}>{envoi ? 'Création du compte…' : "S'inscrire"}</button>
         <p className="cs-sub">Déjà inscrit ? <Link to="/login">Se connecter</Link></p>
       </form>
-    </div>
+    </EcranAuth>
   )
 }

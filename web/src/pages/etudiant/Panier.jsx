@@ -5,7 +5,8 @@ import { usePanier } from '../../context/PanierContext'
 import { api } from '../../services/api'
 import Quantite from '../../components/Quantite'
 import { dt } from '../../utils/format'
-import { categorie, heure } from '../../utils/categories'
+import { heure } from '../../utils/categories'
+import Cloche from '../../components/Cloche'
 
 export default function Panier() {
   const { lignes, commerce, total, economie, nbArticles, modifierQuantite, retirer, vider } = usePanier()
@@ -60,7 +61,7 @@ export default function Panier() {
         <ul className="et-lignes">
           {lignes.map(({ offre: o, quantite }) => (
             <li key={o.id} className="et-ligne">
-              <div className="et-ligne-icone" aria-hidden="true">{categorie(o.categorie).icone}</div>
+              <Cloche code={o.categorie} photoUrl={o.photoUrl} taille="petite" />
               <div className="et-ligne-texte">
                 <Link to={`/offres/${o.id}`} className="et-ligne-titre">{o.titre}</Link>
                 <span className="cs-sub">

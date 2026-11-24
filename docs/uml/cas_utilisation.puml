@@ -31,6 +31,7 @@ rectangle "Plateforme CampusSave" {
     usecase "Recevoir le QR code" as QR
     usecase "Recevoir l'email\nde confirmation\n(commande + QR code)" as MAIL
     usecase "Suivre ses commandes" as SUIVI
+    usecase "Être notifié\n(commande prête, remise)" as NOTIF
     usecase "Tableau de bord\nétudiant" as DBE
   }
 
@@ -85,6 +86,7 @@ ADM --> DBA
 
 ' --- Relations entre cas ---
 REC ..> CONS : <<extend>>
+NOTIF ..> SUIVI : <<extend>>
 PAN ..> CHOIX : <<include>>
 RES ..> PAN : <<include>>
 PAY ..> RES : <<include>>
