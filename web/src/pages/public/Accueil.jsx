@@ -8,11 +8,13 @@ import { useInstallation } from '../../components/useInstallation'
 import { FAQ } from '../../contenu/faq'
 import { dt } from '../../utils/format'
 import { heure, reduction } from '../../utils/categories'
-import { Assiette } from '../../components/Logo'
 import Cloche from '../../components/Cloche'
 import Icone from '../../components/Icone'
+import { Revele, Parallaxe, Compteur } from '../../components/Anime'
 
-const nombre = (n, langue) => (n == null ? '—' : new Intl.NumberFormat(langue === 'ar' ? 'ar-TN' : langue).format(n))
+const PHOTOS_DEFILE = ['viennoiseries', 'makloub', 'baklawa', 'couscous', 'jus-orange', 'pizza', 'makroudh', 'brik', 'donuts', 'chapati']
+const nb = (n) => new Intl.NumberFormat('fr').format(n)
+
 
 export default function Accueil() {
   const { t, langue } = usePreferences()
@@ -40,30 +42,38 @@ export default function Accueil() {
             <Link to="/partenaires" className="cs-btn acc-cta">{t('pub.ctaCommerce')}</Link>
           </div>
         </div>
-        <div className="acc-hero-visuel" aria-hidden="true">
-          <Assiette taille={300} className="acc-assiette" />
+        <div className="acc-hero-visuel acc-collage" aria-hidden="true">
+          <Parallaxe src="/photos/viennoiseries.jpg" vitesse={0.06} className="c1" />
+          <Parallaxe src="/photos/makloub.jpg" vitesse={0.16} className="c2" />
+          <Parallaxe src="/photos/baklawa.jpg" vitesse={0.1} className="c3" />
           <span className="acc-pastille acc-p1">−60 %</span>
           <span className="acc-pastille acc-p2"><Icone nom="horloge" taille={16} /> 18:00 – 19:30</span>
         </div>
       </section>
 
+      <div className="acc-defile" aria-hidden="true">
+        <div className="acc-defile-piste">
+          {[...PHOTOS_DEFILE, ...PHOTOS_DEFILE].map((p, i) => <img key={i} src={`/photos/${p}.jpg`} alt="" loading="lazy" />)}
+        </div>
+      </div>
+
       <section className="acc-compteurs" aria-label="Impact">
-        <div><b>{nombre(s?.repasSauves, langue)}</b><span>{t('pub.compteurRepas')}</span></div>
-        <div><b>{nombre(s?.commerces, langue)}</b><span>{t('pub.compteurCommerces')}</span></div>
-        <div><b>{nombre(s?.etudiants, langue)}</b><span>{t('pub.compteurEtudiants')}</span></div>
-        <div><b>{nombre(s?.co2Evite, langue)}</b><span>{t('pub.compteurCo2')}</span></div>
+        <div><b><Compteur cible={s?.repasSauves} format={nb} /></b><span>{t('pub.compteurRepas')}</span></div>
+        <div><b><Compteur cible={s?.commerces} format={nb} /></b><span>{t('pub.compteurCommerces')}</span></div>
+        <div><b><Compteur cible={s?.etudiants} format={nb} /></b><span>{t('pub.compteurEtudiants')}</span></div>
+        <div><b><Compteur cible={s?.co2Evite} format={nb} /></b><span>{t('pub.compteurCo2')}</span></div>
       </section>
 
       <section id="comment" className="acc-section">
-        <h2>{t('pub.etapesTitre')}</h2>
+        <Revele as="h2">{t('pub.etapesTitre')}</Revele>
         <ol className="acc-etapes">
-          {etapes.map((e) => (
-            <li key={e.n}>
+          {etapes.map((e, i) => (
+            <Revele as="li" key={e.n} delai={i * 120}>
               <span className="acc-etape-n">{e.n}</span>
               <Icone nom={e.i} taille={28} />
               <h3>{e.t}</h3>
               <p>{e.d}</p>
-            </li>
+            </Revele>
           ))}
         </ol>
       </section>
@@ -75,8 +85,9 @@ export default function Accueil() {
             <Link to="/offres">{t('nav.offres')} →</Link>
           </div>
           <div className="acc-offres">
-            {offres.data.slice(0, 3).map((o) => (
-              <Link key={o.id} to={`/offres/${o.id}`} className="acc-offre">
+            {offres.data.slice(0, 3).map((o, i) => (
+              <Revele key={o.id} delai={i * 120} sens={i === 0 ? 'gauche' : i === 2 ? 'droite' : 'zoom'}>
+              <Link to={`/offres/${o.id}`} className="acc-offre">
                 <Cloche code={o.categorie} photoUrl={o.photoUrl} remise={reduction(o)} />
                 <div>
                   <span className="et-commerce">{o.commerce?.nom}</span>
@@ -85,6 +96,7 @@ export default function Accueil() {
                   <span className="cs-sub"><Icone nom="horloge" taille={14} /> {heure(o.heureDebutRecuperation)} – {heure(o.heureFinRecuperation)}</span>
                 </div>
               </Link>
+              </Revele>
             ))}
           </div>
         </section>
@@ -99,13 +111,13 @@ export default function Accueil() {
         </ul>
       </section>
 
-      <section className="acc-bandeau">
+      <Revele as="section" sens="zoom" className="acc-bandeau">
         <div>
           <h2>{t('pub.commercantTitre')}</h2>
           <p>{t('pub.commercantTexte')}</p>
         </div>
         <Link to="/partenaires" className="cs-btn primary">{t('pub.ctaCommerce')}</Link>
-      </section>
+      </Revele>
 
       <section className="acc-section acc-app">
         <div>
