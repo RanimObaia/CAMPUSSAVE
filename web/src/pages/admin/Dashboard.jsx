@@ -16,6 +16,11 @@ export default function AdminDashboard() {
         <Stat label="Commandes" valeur={s?.commandes ?? '—'} />
         <Stat label="Paiements Konnect" valeur={s?.paiements ?? '—'} note="mode test" />
       </div>
+      <div className="cs-actions">
+        <Link className="cs-btn" to="/admin/signalements">Signalements à traiter</Link>
+        <Link className="cs-btn" to="/admin/offres">Modérer les offres</Link>
+        <Link className="cs-btn" to="/admin/commandes">Commandes et paiements</Link>
+      </div>
     </>
   )
 }

@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../../services/api'
 import { usePanier } from '../../context/PanierContext'
+import { useAuth } from '../../context/AuthContext'
+import { USE_MOCK } from '../../config/constants'
 import { dt } from '../../utils/format'
+import { useTitre } from '../../hooks'
 
 const ESSAIS_MAX = 15 // 15 × 2 s = 30 secondes d'attente au plus
 
@@ -17,6 +20,8 @@ export default function PaiementRetour() {
   const [erreur, setErreur] = useState('')
   const [delaiDepasse, setDelaiDepasse] = useState(false)
   const panierVide = useRef(false)
+  const { user } = useAuth()
+  useTitre('Résultat du paiement')
 
   useEffect(() => {
     if (!id) return undefined
@@ -84,8 +89,9 @@ export default function PaiementRetour() {
           <div className="et-rond et-rond-ok" aria-hidden="true">✓</div>
           <h1>Paiement réussi</h1>
           <p>Commande <b>{commande.code}</b> · {dt(commande.montantTotal)}</p>
-          <p className="cs-sub">Un email de confirmation vient de t'être envoyé. Présente ton QR code au commerçant pour récupérer ta commande.</p>
+          <p className="cs-sub">Un e-mail de confirmation avec ton QR code vient d'être envoyé à <b>{commande.emailEtudiant || user?.email}</b>. Présente le QR code au commerçant pour récupérer ta commande.</p>
           <Link to={`/commandes/${id}`} className="cs-btn primary">Voir mon QR code</Link>
+          {USE_MOCK && <ApercuEmail commande={commande} type="confirmation" />}
         </>
       )}
       {statut === 'ANNULEE' && (
@@ -93,9 +99,27 @@ export default function PaiementRetour() {
           <div className="et-rond et-rond-ko" aria-hidden="true">✕</div>
           <h1>Paiement échoué</h1>
           <p className="cs-sub">Aucun montant n'a été débité. La commande {commande.code} est annulée et ton panier est toujours là.</p>
+          {commande.paiement?.reference && <p className="cs-sub">Un e-mail « paiement non abouti » a été envoyé à <b>{commande.emailEtudiant || user?.email}</b>.</p>}
           <Link to="/panier" className="cs-btn primary">Retour au panier</Link>
+          {USE_MOCK && commande.paiement?.reference && <ApercuEmail commande={commande} type="echec" />}
         </>
       )}
     </div>
+  )
+}
+
+// Mode démo : aucun e-mail ne part (pas de serveur), on montre celui que le backend enverrait
+function ApercuEmail({ commande, type }) {
+  const [html, setHtml] = useState('')
+  useEffect(() => {
+    // Chargé à la demande : ce code ne sert qu'en mode démo
+    import('../../utils/apercuEmail').then((m) => setHtml(type === 'echec' ? m.emailEchec(commande) : m.emailConfirmation(commande)))
+  }, [commande, type])
+  if (!html) return null
+  return (
+    <details className="apercu-email" open>
+      <summary>Mode démo : aperçu de l'e-mail reçu</summary>
+      <iframe title="Aperçu de l'e-mail" srcDoc={html} sandbox="" />
+    </details>
   )
 }

@@ -23,3 +23,17 @@ export function finDans(iso, maintenant = Date.now()) {
   const texte = minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${String(minutes % 60).padStart(2, '0')}` : ''}`
   return { texte, urgent: minutes < 60 }
 }
+
+// Préférences alimentaires cochées par le commerçant (mêmes codes que l'API)
+export const REGIMES = {
+  VEGETARIEN: 'Végétarien', VEGAN: 'Végan', SANS_GLUTEN: 'Sans gluten', SANS_LACTOSE: 'Sans lactose', FAIT_MAISON: 'Fait maison',
+}
+
+// Types de commerce
+export const TYPES = { RESTAURANT: 'Restaurant', CAFETERIA: 'Cafétéria', BOULANGERIE: 'Boulangerie', PATISSERIE: 'Pâtisserie' }
+
+// Note « 4,6 » ou null
+export const note = (n) => (n == null ? null : String(Math.round(n * 10) / 10).replace('.', ','))
+
+// Distance « 350 m » ou « 1,2 km »
+export const distance = (km) => (km == null ? null : km < 1 ? `${Math.round(km * 1000 / 10) * 10} m` : `${String(km).replace('.', ',')} km`)

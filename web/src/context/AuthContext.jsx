@@ -10,11 +10,20 @@ export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null) // profil renvoyé par GET /users/me
-  const [loading, setLoading] = useState(!USE_MOCK)
+  const [loading, setLoading] = useState(() => {
+    if (!USE_MOCK) return true
+    try { return Boolean(sessionStorage.getItem('campussave-demo')) } catch { return false }
+  })
   const [erreurConnexion, setErreurConnexion] = useState('') // message si le profil ne peut pas être chargé
 
   useEffect(() => {
-    if (USE_MOCK) return undefined
+    if (USE_MOCK) {
+      // Mode démo : on garde la connexion après un rechargement de page
+      let email = null
+      try { email = sessionStorage.getItem('campussave-demo') } catch { /* indisponible */ }
+      if (email) api.getMe(email).then(setUser).finally(() => setLoading(false))
+      return undefined
+    }
     return onAuthStateChanged(auth, async (fbUser) => {
       try {
         setUser(fbUser ? await api.getMe() : null)
@@ -34,6 +43,7 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     if (USE_MOCK) {
       setUser(await api.getMe(email))
+      try { sessionStorage.setItem('campussave-demo', email) } catch { /* indisponible */ }
       return
     }
     await signInWithEmailAndPassword(auth, email, password)
@@ -41,6 +51,7 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     if (!USE_MOCK) await signOut(auth)
+    try { sessionStorage.removeItem('campussave-demo') } catch { /* indisponible */ }
     setUser(null)
   }
 

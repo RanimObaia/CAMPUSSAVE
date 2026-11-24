@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { USE_MOCK } from '../config/constants'
 import EcranAuth from '../components/EcranAuth'
 
-const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/' }
+const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/offres' }
 
 export default function Login() {
   const { user, login, erreurConnexion } = useAuth()
@@ -36,6 +36,7 @@ export default function Login() {
           <input id="pw" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} /></div>
         <button className="cs-btn primary" disabled={envoi}>{envoi ? 'Connexion…' : 'Se connecter'}</button>
         <p className="cs-sub">Pas encore de compte ? <Link to="/inscription">Créer un compte</Link></p>
+        <p className="cs-sub auth-aide-lien"><Link to="/aide">Besoin d'aide ?</Link> · <Link to="/">Retour à l'accueil</Link></p>
       </form>
     </EcranAuth>
   )
