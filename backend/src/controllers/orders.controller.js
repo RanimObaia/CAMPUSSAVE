@@ -372,7 +372,15 @@ async function markReady(req, res) {
     });
   });
 
-  res.json(docToJson(await ref.get()));
+  const maj = await ref.get();
+  // Notification push à l'étudiant (sans attendre, et sans jamais bloquer la réponse)
+  notifier(
+    maj.data().idEtudiant,
+    "Commande prête 🎉",
+    `Votre commande ${maj.data().code} est prête à être retirée.`,
+    { commandeId: ref.id }
+  );
+  res.json(docToJson(maj));
 }
 
 // POST /api/orders/validate-qr : { code } -> RECUPEREE
@@ -428,7 +436,14 @@ async function validateQr(req, res) {
     );
   });
 
-  res.json(docToJson(await ref.get()));
+  const maj = await ref.get();
+  notifier(
+    maj.data().idEtudiant,
+    "Commande remise ✅",
+    "Merci d'avoir sauvé un repas ! Vos EcoPoints ont été ajoutés.",
+    { commandeId: ref.id }
+  );
+  res.json(docToJson(maj));
 }
 
 module.exports = {
