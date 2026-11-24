@@ -9,7 +9,6 @@ const {
 } = require("../config/constants");
 const { commerceDuCommercant } = require("./shops.controller");
 const { verifierPaiement } = require("../services/paiement");
-const { notifier } = require("../services/notifications");
 
 const DELAI_EXPIRATION_MS = 30 * 60 * 1000; // 30 minutes
 const POINTS_PAR_REPAS = 10;
