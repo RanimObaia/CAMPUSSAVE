@@ -16,6 +16,7 @@ export default function OffreDetail() {
   const panier = usePanier()
   const [qte, setQte] = useState(1)
   const [ajoute, setAjoute] = useState(false)
+  const [confirmeRemplacer, setConfirmeRemplacer] = useState(false) // panier d'un autre commerce
 
   if (erreur) {
     return (
@@ -33,10 +34,14 @@ export default function OffreDetail() {
   const dejaDansPanier = panier.quantiteDe(o.id)
   const resteAjoutable = o.quantiteDisponible - dejaDansPanier
 
-  function ajouterAuPanier() {
-    // Une commande = un seul commerce : on demande avant de remplacer le panier
-    if (panier.autreCommerce(o) &&
-      !window.confirm(`Ton panier contient des offres de « ${panier.commerce.nom} ». Le vider pour ajouter celle-ci ?`)) return
+  // Une commande = un seul commerce : on demande dans la page avant de remplacer le panier
+  // (une boîte window.confirm peut être bloquée par le navigateur)
+  function ajouterAuPanier(confirme = false) {
+    if (panier.autreCommerce(o) && !confirme) {
+      setConfirmeRemplacer(true)
+      return
+    }
+    setConfirmeRemplacer(false)
     panier.ajouter(o, qte)
     setQte(1)
     setAjoute(true)
@@ -70,9 +75,18 @@ export default function OffreDetail() {
           {disponible && resteAjoutable > 0 && (
             <div className="et-ajout">
               <Quantite valeur={Math.min(qte, resteAjoutable)} max={resteAjoutable} onChange={(q) => { setQte(q); setAjoute(false) }} />
-              <button type="button" className="cs-btn primary" onClick={ajouterAuPanier}>
+              <button type="button" className="cs-btn primary" onClick={() => ajouterAuPanier()}>
                 Ajouter au panier · {dt(o.prixReduit * Math.min(qte, resteAjoutable))}
               </button>
+            </div>
+          )}
+          {confirmeRemplacer && (
+            <div className="et-confirmer" role="alertdialog" aria-labelledby="remplacer-titre">
+              <p id="remplacer-titre"><b>Ton panier contient des offres de « {panier.commerce?.nom} ».</b> Une commande se fait chez un seul commerce : le vider pour ajouter celle-ci ?</p>
+              <div className="et-confirmer-boutons">
+                <button type="button" className="cs-btn" onClick={() => setConfirmeRemplacer(false)} autoFocus>Garder mon panier</button>
+                <button type="button" className="cs-btn danger" onClick={() => ajouterAuPanier(true)}>Vider et ajouter</button>
+              </div>
             </div>
           )}
           {disponible && resteAjoutable <= 0 && (
