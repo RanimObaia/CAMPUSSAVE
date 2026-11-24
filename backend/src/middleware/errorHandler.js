@@ -28,10 +28,13 @@ function errorHandler(err, req, res, next) {
   }
 
   const status = err.status || 500;
+  // Erreur prévue, créée avec httpError() (même en 5xx, ex. Konnect indisponible) :
+  // son code et son message sont faits pour l'utilisateur. Les autres restent cachées.
+  const prevue = Boolean(err.status && err.code);
   if (status >= 500) console.error(err);
   res.status(status).json({
-    code: status < 500 ? err.code || 'REQUETE_INVALIDE' : 'ERREUR_SERVEUR',
-    message: status < 500 ? err.message : 'Erreur interne du serveur.',
+    code: prevue || status < 500 ? err.code || 'REQUETE_INVALIDE' : 'ERREUR_SERVEUR',
+    message: prevue || status < 500 ? err.message : 'Erreur interne du serveur.',
   });
 }
 

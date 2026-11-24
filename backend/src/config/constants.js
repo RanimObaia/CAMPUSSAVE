@@ -2,21 +2,56 @@
 // Elles suivent le diagramme de classes (docs/uml/classes.puml) et le code web.
 
 const ROLES = Object.freeze({
-  STUDENT: 'student',
-  MERCHANT: 'merchant',
-  ADMIN: 'admin',
+  STUDENT: "student",
+  MERCHANT: "merchant",
+  ADMIN: "admin",
 });
 
 // Rôles qu'on peut choisir à l'inscription. Un admin se crée uniquement
 // avec scripts/create-admin.js, jamais par l'API publique.
 const ROLES_INSCRIPTION = [ROLES.STUDENT, ROLES.MERCHANT];
 
-const TYPES_COMMERCE = ['RESTAURANT', 'CAFETERIA', 'BOULANGERIE', 'PATISSERIE'];
+const TYPES_COMMERCE = ["RESTAURANT", "CAFETERIA", "BOULANGERIE", "PATISSERIE"];
 
 const STATUT_VALIDATION = Object.freeze({
-  EN_ATTENTE: 'EN_ATTENTE',
-  VALIDE: 'VALIDE',
-  REFUSE: 'REFUSE',
+  EN_ATTENTE: "EN_ATTENTE",
+  VALIDE: "VALIDE",
+  REFUSE: "REFUSE",
 });
 
-module.exports = { ROLES, ROLES_INSCRIPTION, TYPES_COMMERCE, STATUT_VALIDATION };
+// Catégories d'offres, identiques à web/src/config/constants.js
+const CATEGORIES_OFFRE = ["BOULANGERIE", "PLATS", "PATISSERIE", "BOISSONS"];
+
+const STATUT_OFFRE = Object.freeze({
+  ACTIVE: "ACTIVE",
+  EPUISEE: "EPUISEE", // quantité à 0
+  EXPIREE: "EXPIREE", // heure de fin de retrait passée (calculé à la lecture)
+  RETIREE: "RETIREE", // retirée par le commerçant
+});
+
+// Statuts d'une commande, de la réservation au retrait.
+const STATUT_COMMANDE = Object.freeze({
+  EN_ATTENTE_PAIEMENT: "EN_ATTENTE_PAIEMENT",
+  PAYEE: "PAYEE",
+  PRETE: "PRETE",
+  RECUPEREE: "RECUPEREE",
+  ANNULEE: "ANNULEE",
+});
+
+// Statuts du paiement Konnect enregistré dans la commande.
+const STATUT_PAIEMENT = Object.freeze({
+  INITIE: "INITIE",
+  REUSSI: "REUSSI",
+  ECHOUE: "ECHOUE",
+});
+
+module.exports = {
+  ROLES,
+  ROLES_INSCRIPTION,
+  TYPES_COMMERCE,
+  STATUT_VALIDATION,
+  CATEGORIES_OFFRE,
+  STATUT_OFFRE,
+  STATUT_COMMANDE,
+  STATUT_PAIEMENT,
+};

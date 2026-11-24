@@ -32,7 +32,7 @@ export default function MesCommandes() {
               <div className="et-ligne-texte">
                 <span className="et-ligne-titre">{c.commerce?.nom} · {c.code}</span>
                 <span className="cs-sub">
-                  {dateHeure(c.createdAt)} · {c.lignes.reduce((n, l) => n + l.quantite, 0)} article(s)
+                  {dateHeure(c.dateCommande)} · {c.lignes.reduce((n, l) => n + l.quantite, 0)} article(s)
                 </span>
               </div>
               <Badge type="commande" valeur={c.statut} />

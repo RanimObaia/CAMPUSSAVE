@@ -11,6 +11,7 @@ const ESSAIS_MAX = 15 // 15 × 2 s = 30 secondes d'attente au plus
 export default function PaiementRetour() {
   const [params] = useSearchParams()
   const id = params.get('commande')
+  const echec = params.get('echec') === '1' // Konnect renvoie ici après un paiement refusé ou abandonné
   const { vider } = usePanier()
   const [commande, setCommande] = useState(null)
   const [erreur, setErreur] = useState('')
@@ -34,9 +35,21 @@ export default function PaiementRetour() {
         setErreur(err.message)
       }
     }
-    verifier()
+    async function demarrer() {
+      if (echec) {
+        // On annule la commande (stock remis en vente). Si elle a quand même été payée
+        // entre-temps, le serveur refuse l'annulation : on affiche alors son vrai statut.
+        try {
+          await api.annulerCommande(id)
+        } catch (err) {
+          if (err.code !== 'COMMANDE_DEJA_PAYEE') console.warn(err.message)
+        }
+      }
+      verifier()
+    }
+    demarrer()
     return () => clearTimeout(minuteur)
-  }, [id])
+  }, [id, echec])
 
   // Paiement réussi : le panier a été commandé, on le vide (une seule fois)
   useEffect(() => {

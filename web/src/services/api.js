@@ -20,6 +20,7 @@ const real = {
   // Inscription (étudiant ou commerçant) : route publique, sans jeton
   register: (data) => request('/auth/register', { method: 'POST', body: data }),
   getMe: () => request('/users/me'),
+  updateMe: (data) => request('/users/me', { method: 'PUT', body: data }),
   // Étudiant : recherche d'offres (produit ou commerce, catégorie, prix maximum en millimes)
   listOffers: (filtres = {}) => {
     const params = new URLSearchParams()
@@ -32,6 +33,8 @@ const real = {
   createOrder: (data) => request('/orders', { method: 'POST', body: data }),
   initPaiement: (commandeId) => request('/payments/init', { method: 'POST', body: { commandeId } }),
   getCommande: (id) => request(`/orders/${id}`),
+  // Paiement refusé ou abandonné sur Konnect : la commande est annulée et le stock remis en vente
+  annulerCommande: (id) => request(`/orders/${id}/cancel`, { method: 'POST' }),
   mesCommandes: () => request('/orders/mine'),
   studentStats: () => request('/stats/student'),
   getMyShop: () => request('/shops/mine'),

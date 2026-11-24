@@ -172,18 +172,17 @@ enum StatutPaiement {
   ECHOUE
 }
 enum Categorie {
-  PLAT
-  SANDWICH
+  BOULANGERIE
+  PLATS
   PATISSERIE
-  BOISSON
-  AUTRE
+  BOISSONS
 }
 
 Utilisateur <|-- Etudiant
 Utilisateur <|-- Commercant
 Utilisateur <|-- Administrateur
 
-Commercant "1" -- "1..*" Commerce : possède >
+Commercant "1" -- "1" Commerce : possède >
 Commerce "1" *-- "0..*" Offre : propose >
 Administrateur "1" ..> "0..*" Commerce : valide >
 

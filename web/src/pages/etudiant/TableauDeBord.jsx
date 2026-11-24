@@ -62,7 +62,7 @@ export default function TableauDeBord() {
         lignes={recentes.map((c) => [
           <Link key="code" to={`/commandes/${c.id}`}>{c.code}</Link>,
           c.commerce?.nom,
-          dateHeure(c.createdAt),
+          dateHeure(c.dateCommande),
           dt(c.montantTotal),
           <Badge key="statut" type="commande" valeur={c.statut} />,
         ])}
