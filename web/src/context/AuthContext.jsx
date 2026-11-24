@@ -11,14 +11,21 @@ export const useAuth = () => useContext(AuthContext)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null) // profil renvoyé par GET /users/me
   const [loading, setLoading] = useState(!USE_MOCK)
+  const [erreurConnexion, setErreurConnexion] = useState('') // message si le profil ne peut pas être chargé
 
   useEffect(() => {
     if (USE_MOCK) return undefined
     return onAuthStateChanged(auth, async (fbUser) => {
       try {
         setUser(fbUser ? await api.getMe() : null)
-      } catch {
+        setErreurConnexion('')
+      } catch (e) {
+        // Connecté à Firebase mais profil illisible : on l'explique au lieu de rester bloqué
         setUser(null)
+        setErreurConnexion(e.status
+          ? `Connexion réussie, mais le serveur a refusé le profil : ${e.message}`
+          : "Impossible de joindre le serveur (backend). Vérifie qu'il tourne sur le port 4000.")
+        await signOut(auth).catch(() => {})
       }
       setLoading(false)
     })
@@ -37,5 +44,5 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, loading, login, logout, erreurConnexion }}>{children}</AuthContext.Provider>
 }

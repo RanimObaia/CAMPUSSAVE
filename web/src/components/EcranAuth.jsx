@@ -13,7 +13,7 @@ export default function EcranAuth({ children }) {
         </div>
         <ol className="auth-etapes">
           <li><b>1</b><span>Choisis une offre près du campus et réserve-la.</span></li>
-          <li><b>2</b><span>Paie en ligne, en toute sécurité, avec Konnect.</span></li>
+          <li><b>2</b><span>Paie en ligne par carte, en toute sécurité.</span></li>
           <li><b>3</b><span>Présente ton QR code au commerçant et récupère ton repas.</span></li>
         </ol>
         <Assiette className="auth-assiette" taille={340} />

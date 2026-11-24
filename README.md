@@ -83,7 +83,7 @@ Aucune clé secrète n'est versionnée. Fichiers à créer localement :
 Pour remplir Firestore avec des commerces et des offres réalistes autour de l'ESSECT :
 ```bash
 cd backend
-npm run seed                                  # 5 commerces validés, 15 offres, 1 commerce en attente
+npm run seed                                  # 6 commerces validés, 16 offres, 1 commerce en attente
 npm run create-admin -- admin@campussave.tn MotDePasse   # crée le compte administrateur
 ```
 Le script est relançable : il ne touche qu'aux documents dont l'identifiant commence par `demo-`.
@@ -92,8 +92,10 @@ Les horaires de retrait sont calculés à partir de l'heure du lancement, relanc
 | Compte | Rôle | Mot de passe |
 |---|---|---|
 | `etudiant@demo.campussave.tn` | Étudiant | `Demo2026!` |
-| `elmedina@demo.campussave.tn`, `fournil@…`, `essaada@…`, `carthage@…`, `cafeteria@…` | Commerçant (commerce validé) | `Demo2026!` |
-| `bardo@demo.campussave.tn` | Commerçant (commerce en attente de validation) | `Demo2026!` |
+| `cheznous@demo.campussave.tn`, `ggfood@…`, `layal@…`, `naziha@…`, `benrjab@…`, `delicious@…` | Commerçant (commerce validé) | `Demo2026!` |
+| `horizon@demo.campussave.tn` | Commerçant (commerce en attente de validation) | `Demo2026!` |
+
+> **Commerces de démonstration :** ce sont de vrais commerces situés à moins de 1 km de l'ESSECT (noms, adresses, coordonnées GPS et horaires issus de Google Maps). Les offres, les prix et les comptes commerçants sont **simulés**, et aucun vrai numéro de téléphone n'est utilisé. Aucun de ces commerces n'utilise réellement CampusSave : ces données servent uniquement à la démonstration du projet.
 
 **Sans backend :** `VITE_USE_MOCK=true` dans `web/.env.local` lance le site avec des données fictives
 (`etudiant@demo.tn`, `merchant@demo.tn`, `admin@demo.tn`, n'importe quel mot de passe). Le paiement y est simulé.
