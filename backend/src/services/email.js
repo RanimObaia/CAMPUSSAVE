@@ -1,4 +1,4 @@
-// Email de confirmation de paiement (besoin BF-12 du cahier des charges).
+// Emails de paiement (besoin BF-12 du cahier des charges) : confirmation et refus.
 // Gmail + mot de passe d'application : MAIL_USER et MAIL_APP_PASSWORD dans .env.
 // MAIL_COPIE (facultatif) reçoit une copie cachée, par exemple pour la démonstration.
 const nodemailer = require('nodemailer');
@@ -55,27 +55,81 @@ function contenuHtml(c) {
   </div>`;
 }
 
-// Renvoie true si l'email est parti, false sinon (le paiement reste valide dans tous les cas).
-async function envoyerConfirmation(commande) {
+// E-mail de paiement refusé ou expiré (aucun montant débité, stock remis en vente).
+// motif : 'REFUSE' (paiement refusé ou abandonné sur Konnect) ou 'EXPIRE' (lien de 30 min dépassé).
+function contenuEchecHtml(c, motif) {
+  const raison = motif === 'EXPIRE'
+    ? "Le délai de paiement de 30 minutes est dépassé : la réservation a été libérée."
+    : "Le paiement n'a pas été accepté (carte refusée, paiement annulé ou abandonné).";
+  const lignes = c.lignes.map((l) => `<li>${l.quantite} × ${echapper(l.titre)}</li>`).join('');
+  const web = process.env.WEB_APP_URL || 'http://localhost:5173';
+  return `
+  <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#17301a">
+    <div style="background:#b5432a;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0">
+      <h1 style="margin:0;font-size:22px">Paiement non abouti ✕</h1>
+      <p style="margin:6px 0 0;color:#f6e1d9">Aucun montant n'a été débité.</p>
+    </div>
+    <div style="background:#ffffff;border:1px solid #dde5d6;border-top:0;padding:24px;border-radius:0 0 12px 12px">
+      <p>Commande <b>${echapper(c.code)}</b> chez <b>${echapper(c.commerce?.nom)}</b> : ${dt(c.montantTotal)}.</p>
+      <p>${raison}</p>
+      <ul>${lignes}</ul>
+      ${c.paiement?.reference ? `<p><b>Référence du paiement :</b> ${echapper(c.paiement.reference)}</p>` : ''}
+      <p>La commande est annulée. Si l'offre est encore disponible, tu peux la commander à nouveau.</p>
+      <p style="text-align:center;margin-top:24px">
+        <a href="${echapper(web)}/offres" style="background:#1c6a4b;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Voir les offres</a>
+      </p>
+      <p style="color:#5b6a60;font-size:13px">Un problème ? Réponds à cet e-mail ou écris-nous depuis la page Contact.</p>
+    </div>
+  </div>`;
+}
+
+// Envoi générique. Renvoie true si l'email est parti, false sinon (jamais d'erreur levée).
+async function envoyer(message, etiquette) {
   const t = transport();
   if (!t) {
-    console.warn(`Email non envoyé pour ${commande.code} : MAIL_USER / MAIL_APP_PASSWORD manquants.`);
+    console.warn(`Email non envoyé (${etiquette}) : MAIL_USER / MAIL_APP_PASSWORD manquants.`);
+    return false;
+  }
+  if (!message.to) {
+    console.warn(`Email non envoyé (${etiquette}) : destinataire inconnu.`);
     return false;
   }
   try {
-    await t.sendMail({
-      from: `"CampusSave" <${process.env.MAIL_USER}>`,
-      to: commande.emailEtudiant,
-      bcc: process.env.MAIL_COPIE || undefined,
-      subject: `CampusSave – Paiement confirmé, commande ${commande.code}`,
-      html: contenuHtml(commande),
-      attachments: [{ filename: `${commande.code}.png`, content: await QRCode.toBuffer(commande.code, { width: 360, margin: 1 }), cid: 'qrcode' }],
-    });
+    await t.sendMail({ from: `"CampusSave" <${process.env.MAIL_USER}>`, bcc: process.env.MAIL_COPIE || undefined, ...message });
     return true;
   } catch (err) {
-    console.error(`Échec de l'email pour ${commande.code} :`, err.message);
+    console.error(`Échec de l'email (${etiquette}) :`, err.message);
     return false;
   }
+}
+
+// Paiement réussi : récapitulatif + QR code en pièce jointe intégrée.
+async function envoyerConfirmation(commande) {
+  return envoyer({
+    to: commande.emailEtudiant,
+    subject: `CampusSave – Paiement confirmé, commande ${commande.code}`,
+    html: contenuHtml(commande),
+    attachments: [{ filename: `${commande.code}.png`, content: await QRCode.toBuffer(commande.code, { width: 360, margin: 1 }), cid: 'qrcode' }],
+  }, commande.code);
+}
+
+// Paiement refusé ou expiré
+async function envoyerEchec(commande, motif = 'REFUSE') {
+  return envoyer({
+    to: commande.emailEtudiant,
+    subject: `CampusSave – Paiement non abouti, commande ${commande.code}`,
+    html: contenuEchecHtml(commande, motif),
+  }, `${commande.code} échec`);
+}
+
+// Message du formulaire de contact, transmis à l'équipe (MAIL_CONTACT, sinon MAIL_USER)
+async function envoyerContact({ nom, email, sujet, message }) {
+  return envoyer({
+    to: process.env.MAIL_CONTACT || process.env.MAIL_USER,
+    replyTo: email,
+    subject: `CampusSave – Contact : ${sujet}`,
+    html: `<p><b>${echapper(nom)}</b> (${echapper(email)}) a écrit :</p><p style="white-space:pre-wrap">${echapper(message)}</p>`,
+  }, 'contact');
 }
 
 // Pour les tests automatiques seulement
@@ -83,4 +137,4 @@ function remplacerTransportPourTests(t) {
   transporteur = t;
 }
 
-module.exports = { envoyerConfirmation, contenuHtml, remplacerTransportPourTests };
+module.exports = { envoyerConfirmation, envoyerEchec, envoyerContact, contenuHtml, contenuEchecHtml, remplacerTransportPourTests };

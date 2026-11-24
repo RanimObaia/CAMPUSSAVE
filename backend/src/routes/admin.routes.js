@@ -5,6 +5,9 @@ const { validate } = require('../middleware/errorHandler');
 const { ROLES, STATUT_VALIDATION } = require('../config/constants');
 const shops = require('../controllers/shops.controller');
 const admin = require('../controllers/admin.controller');
+const offres = require('../controllers/offers.controller');
+const signalements = require('../controllers/signalements.controller');
+const { STATUT_SIGNALEMENT } = require('../config/constants');
 
 const router = Router();
 
@@ -41,5 +44,32 @@ router.patch(
   validate,
   admin.changerActif,
 );
+
+// Modération des offres
+router.get('/offers', offres.listeAdmin);
+router.patch(
+  '/offers/:id/retirer',
+  body('motif').optional().trim().isLength({ max: 300 }),
+  validate,
+  offres.retirerAdmin,
+);
+
+// Signalements des étudiants
+router.get(
+  '/reports',
+  query('statut').optional().isIn(Object.values(STATUT_SIGNALEMENT)).withMessage('Statut invalide.'),
+  validate,
+  signalements.listeAdmin,
+);
+router.patch(
+  '/reports/:id',
+  body('statut').isIn([STATUT_SIGNALEMENT.TRAITE, STATUT_SIGNALEMENT.REJETE]).withMessage('Statut : TRAITE ou REJETE.'),
+  body('reponse').optional().trim().isLength({ max: 1000 }),
+  validate,
+  signalements.traiter,
+);
+
+// Commandes et paiements (suivi)
+router.get('/orders', admin.listeCommandes);
 
 module.exports = router;

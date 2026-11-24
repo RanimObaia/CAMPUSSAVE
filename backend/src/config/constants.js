@@ -45,8 +45,24 @@ const STATUT_PAIEMENT = Object.freeze({
   ECHOUE: "ECHOUE",
 });
 
+// Préférences alimentaires qu'un commerçant peut cocher sur une offre (filtres étudiant)
+const REGIMES = ["VEGETARIEN", "VEGAN", "SANS_GLUTEN", "SANS_LACTOSE", "FAIT_MAISON"];
+
+// Signalements (réclamations) d'un étudiant
+const MOTIFS_SIGNALEMENT = ["QUALITE", "QUANTITE", "COMMERCE_FERME", "PAIEMENT", "AUTRE"];
+const STATUT_SIGNALEMENT = Object.freeze({ OUVERT: "OUVERT", TRAITE: "TRAITE", REJETE: "REJETE" });
+
+// Impact écologique (estimations affichées sur le site et l'app)
+const KG_PAR_REPAS = 0.4; // nourriture sauvée par repas
+const CO2_PAR_REPAS = 2.5; // kg CO2e évités par repas sauvé (estimation Too Good To Go)
+
 module.exports = {
   ROLES,
+  REGIMES,
+  MOTIFS_SIGNALEMENT,
+  STATUT_SIGNALEMENT,
+  KG_PAR_REPAS,
+  CO2_PAR_REPAS,
   ROLES_INSCRIPTION,
   TYPES_COMMERCE,
   STATUT_VALIDATION,

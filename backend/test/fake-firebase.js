@@ -10,16 +10,22 @@ class Timestamp {
 }
 const SERVER_TS = { sentinelle: 'serverTimestamp' };
 const DELETE = { sentinelle: 'delete' };
-const FieldValue = { serverTimestamp: () => SERVER_TS, delete: () => DELETE };
+const FieldValue = {
+  serverTimestamp: () => SERVER_TS,
+  delete: () => DELETE,
+  increment: (n) => ({ sentinelle: 'increment', n }),
+};
+const estIncrement = (v) => v && typeof v === 'object' && v.sentinelle === 'increment';
 
 const store = new Map(); // "collection/id" -> données
 let compteur = 0;
 const copie = (v) => (v === undefined ? v : structuredClone(v, { transfer: [] }));
-function resoudre(valeur) {
+function resoudre(valeur, actuel) {
   if (valeur === SERVER_TS) return Timestamp.now();
+  if (estIncrement(valeur)) return (typeof actuel === 'number' ? actuel : 0) + valeur.n;
   if (Array.isArray(valeur)) return valeur.map(resoudre);
   if (valeur && typeof valeur === 'object' && !(valeur instanceof Timestamp)) {
-    return Object.fromEntries(Object.entries(valeur).filter(([, v]) => v !== DELETE).map(([k, v]) => [k, resoudre(v)]));
+    return Object.fromEntries(Object.entries(valeur).filter(([, v]) => v !== DELETE).map(([k, v]) => [k, resoudre(v, actuel?.[k])]));
   }
   return valeur;
 }
@@ -36,11 +42,21 @@ function docRef(collection, id) {
   const ref = {
     id,
     async get() { return snapshot(ref); },
-    async set(data) { store.set(cle, resoudre(data)); },
+    async set(data, options = {}) {
+      const actuel = options.merge ? store.get(cle) || {} : {};
+      store.set(cle, { ...actuel, ...resoudre(data, actuel) });
+    },
     async update(data) {
       if (!store.has(cle)) throw new Error(`NOT_FOUND ${cle}`);
       const actuel = store.get(cle);
-      const resolu = resoudre(data);
+      // Champs pointés "a.b" (ex. "qrCode.estUtilise") : on les range dans l'objet
+      for (const [k, v] of Object.entries(data)) {
+        if (!k.includes('.')) continue;
+        const [parent, enfant] = k.split('.');
+        data = { ...data, [parent]: { ...(actuel[parent] || {}), ...(data[parent] || {}), [enfant]: v } };
+        delete data[k];
+      }
+      const resolu = resoudre(data, actuel);
       for (const [k, v] of Object.entries(data)) if (v === DELETE) delete actuel[k];
       store.set(cle, { ...actuel, ...resolu });
     },
@@ -55,12 +71,18 @@ function snapshot(ref) {
 function query(collection, filtres = [], max = Infinity) {
   return {
     where: (champ, op, valeur) => query(collection, [...filtres, [champ, op, valeur]], max),
+    orderBy: () => query(collection, filtres, max),
     limit: (n) => query(collection, filtres, n),
     async get() {
       const docs = [...store.keys()]
         .filter((k) => k.startsWith(`${collection}/`))
         .map((k) => snapshot(docRef(collection, k.slice(collection.length + 1))))
-        .filter((s) => filtres.every(([c, , v]) => lireChemin(s.data(), c) === v))
+        .filter((s) => filtres.every(([c, op, v]) => {
+          const x = lireChemin(s.data(), c);
+          if (op === 'array-contains') return Array.isArray(x) && x.includes(v);
+          if (op === 'in') return v.includes(x);
+          return x === v;
+        }))
         .slice(0, max);
       return { empty: docs.length === 0, docs };
     },
@@ -78,7 +100,8 @@ const db = {
       const ecritures = [];
       const t = {
         get: (r) => (r.get ? r.get() : r),
-        set: (r, d) => ecritures.push(() => r.set(d)),
+        getAll: (...refs) => Promise.all(refs.map((r) => r.get())),
+        set: (r, d, o) => ecritures.push(() => r.set(d, o)),
         update: (r, d) => ecritures.push(() => r.update(d)),
       };
       const resultat = await fn(t);

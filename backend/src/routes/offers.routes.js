@@ -2,7 +2,7 @@ const { Router } = require('express');
 const { body, query } = require('express-validator');
 const { requireAuth, optionalAuth, requireRole } = require('../middleware/auth');
 const { validate } = require('../middleware/errorHandler');
-const { ROLES, CATEGORIES_OFFRE } = require('../config/constants');
+const { ROLES, CATEGORIES_OFFRE, REGIMES } = require('../config/constants');
 const c = require('../controllers/offers.controller');
 
 const router = Router();
@@ -26,6 +26,9 @@ const reglesOffre = (obligatoire) => {
     champ('heureFinRecuperation').isISO8601().withMessage('Heure de fin invalide.'),
     body('photoUrl').optional({ values: 'falsy' }).isURL({ protocols: ['https'], require_protocol: true })
       .withMessage('La photo doit être une adresse https://.'),
+    body('regimes').optional().isArray({ max: REGIMES.length })
+      .custom((l) => l.every((r) => REGIMES.includes(r))).withMessage(`Régimes possibles : ${REGIMES.join(', ')}.`),
+    body('recurrente').optional().isBoolean({ strict: true }).withMessage('"recurrente" vaut true ou false.'),
     validate,
   ];
 };
@@ -35,6 +38,10 @@ router.get(
   optionalAuth,
   query('prixMax').optional({ values: 'falsy' }).isInt({ min: 0 }).withMessage('prixMax doit être un entier (millimes).'),
   query('categorie').optional({ values: 'falsy' }).isIn(CATEGORIES_OFFRE).withMessage('Catégorie inconnue.'),
+  query('regime').optional({ values: 'falsy' }).isIn(REGIMES).withMessage('Régime inconnu.'),
+  query('tri').optional({ values: 'falsy' }).isIn(['fin', 'distance', 'prix', 'note', 'remise']).withMessage('Tri inconnu.'),
+  query('creneau').optional({ values: 'falsy' }).isIn(['maintenant', 'midi', 'soir']).withMessage('Créneau inconnu.'),
+  query(['lat', 'lng', 'distanceMax']).optional({ values: 'falsy' }).isFloat().withMessage('Nombre attendu.'),
   validate,
   c.lister,
 );
@@ -42,5 +49,13 @@ router.get('/:id', optionalAuth, c.detail);
 router.post('/', requireAuth, requireRole(ROLES.MERCHANT), ...reglesOffre(true), c.creer);
 router.put('/:id', requireAuth, requireRole(ROLES.MERCHANT), ...reglesOffre(false), c.modifier);
 router.delete('/:id', requireAuth, requireRole(ROLES.MERCHANT), c.retirer);
+router.post(
+  '/:id/republier',
+  requireAuth,
+  requireRole(ROLES.MERCHANT),
+  body('quantiteDisponible').optional().isInt({ min: 1, max: 1000 }).withMessage('Quantité invalide.').toInt(),
+  validate,
+  c.republier,
+);
 
 module.exports = router;
