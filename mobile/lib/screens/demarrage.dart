@@ -91,7 +91,7 @@ class Connexion extends StatefulWidget {
 }
 
 class _ConnexionState extends State<Connexion> {
-  final _email = TextEditingController(text: kUseMock ? 'etudiant@demo.tn' : '');
+  final _email = TextEditingController(text: kUseMock ? 'etudiant@demo.campussave.tn' : '');
   final _mdp = TextEditingController(text: kUseMock ? 'demo' : '');
   String _erreur = '';
   bool _envoi = false;

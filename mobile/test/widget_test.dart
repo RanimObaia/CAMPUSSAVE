@@ -41,14 +41,14 @@ void main() {
   test('paiement refusé : commande annulée, stock remis, e-mail de refus', () async {
     final api = ApiMock();
     await api.connexion('etudiant@demo.tn', 'x');
-    final avant = (await api.offre('o13')).quantiteDisponible;
-    final c = await api.creerCommande('s5', {'o13': 3});
-    expect((await api.offre('o13')).quantiteDisponible, avant - 3);
+    final avant = (await api.offre('o15')).quantiteDisponible;
+    final c = await api.creerCommande('s5', {'o15': 3});
+    expect((await api.offre('o15')).quantiteDisponible, avant - 3);
     await api.initierPaiement(c.id);
     final refusee = await api.simulerPaiement(c.id, false);
     expect(refusee.statut, 'ANNULEE');
     expect(refusee.emailEchecEnvoye, isTrue);
-    expect((await api.offre('o13')).quantiteDisponible, avant);
+    expect((await api.offre('o15')).quantiteDisponible, avant);
   });
 
   test('avis seulement après retrait, une seule fois', () async {

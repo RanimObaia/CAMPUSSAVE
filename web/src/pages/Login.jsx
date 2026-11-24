@@ -28,7 +28,7 @@ export default function Login() {
       <form onSubmit={submit}>
         <h2>Content de te revoir</h2>
         <p className="cs-sub">Étudiant, commerçant ou administrateur : connecte-toi à ton espace.</p>
-        {USE_MOCK && <p className="auth-demo">Mode démo : etudiant@demo.tn, merchant@demo.tn ou admin@demo.tn, avec n'importe quel mot de passe.</p>}
+        {USE_MOCK && <p className="auth-demo">Mode démo (comptes du jeu de données de l'équipe) : etudiant@demo.campussave.tn, layal@demo.campussave.tn ou admin@demo.campussave.tn, avec n'importe quel mot de passe.</p>}
         {(erreur || erreurConnexion) && <div className="cs-error" role="alert">{erreur || erreurConnexion}</div>}
         <div className="cs-field"><label htmlFor="email">Adresse e-mail</label>
           <input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>

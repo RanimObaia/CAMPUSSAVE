@@ -10,6 +10,20 @@ const creneau = (debut, fin) => ({
   heureFinRecuperation: new Date(Date.now() + fin * 3600e3).toISOString(),
 });
 
+// Photos réelles (web/public/photos) : champ ajouté en plus des données de l'équipe.
+const PHOTOS = {
+  'demo-capucin-croissant': 'capucin-croissant', 'demo-chapati': 'chapati', 'demo-jus-fraise': 'jus-fraise',
+  'demo-makloub': 'makloub', 'demo-pizza-neptune': 'pizza', 'demo-baguette-farcie': 'baguette-farcie',
+  'demo-viennoiseries': 'viennoiseries', 'demo-baguettes': 'baguettes', 'demo-tabouna': 'tabouna',
+  'demo-assortiment-tunisien': 'assortiment-tunisien', 'demo-makroudh': 'makroudh',
+  'demo-mille-feuille': 'mille-feuille', 'demo-tarte-fruits': 'tarte-fruits', 'demo-citronnade': 'citronnade',
+  'demo-cheesecake': 'cheesecake', 'demo-donuts': 'donuts',
+  'demo-cafe-chez-nous': 'commerce-cafe', 'demo-gg-food': 'commerce-restaurant', 'demo-layal': 'baguettes',
+  'demo-hajja-naziha': 'commerce-patisserie', 'demo-ben-rjab': 'mille-feuille', 'demo-delicious-yacine': 'cheesecake',
+  'demo-horizon': 'brik',
+};
+const photo = (id) => (PHOTOS[id] ? { photoUrl: `/photos/${PHOTOS[id]}.jpg` } : {});
+
 const COMMERCES = [
   {
     id: 'demo-cafe-chez-nous',
@@ -124,6 +138,7 @@ async function commerce(c, uid, statutValidation) {
   await ref.set(
     {
       ...infos,
+      ...photo(id),
       idCommercant: uid,
       statutValidation,
       ...(existant.exists ? {} : { dateCreation: FieldValue.serverTimestamp() }),
@@ -140,6 +155,7 @@ async function offre(o, commerceId) {
   await ref.set(
     {
       ...champs,
+      ...photo(id),
       commerceId,
       statut: champs.quantiteDisponible > 0 ? 'ACTIVE' : 'EPUISEE',
       ...(existant.exists ? { dateModification: FieldValue.serverTimestamp() } : { dateCreation: FieldValue.serverTimestamp() }),

@@ -8,8 +8,9 @@ import '../theme.dart';
 
 // Vignette « cloche » (arche) colorée selon la catégorie, avec la remise
 class Cloche extends StatelessWidget {
-  const Cloche({super.key, required this.categorie, this.remise, this.largeur = 76, this.hauteur = 88});
+  const Cloche({super.key, required this.categorie, this.remise, this.photoUrl, this.largeur = 76, this.hauteur = 88});
   final String categorie;
+  final String? photoUrl;
   final int? remise;
   final double largeur;
   final double hauteur;
@@ -25,8 +26,14 @@ class Cloche extends StatelessWidget {
         color: C.categorie(categorie),
         borderRadius: BorderRadius.only(topLeft: Radius.circular(largeur / 2), topRight: Radius.circular(largeur / 2), bottomLeft: const Radius.circular(12), bottomRight: const Radius.circular(12)),
       ),
-      child: Stack(alignment: Alignment.center, children: [
-        Icon(_icones[categorie] ?? Icons.ramen_dining_outlined, color: C.creme, size: largeur * 0.4),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
+        if (photoUrl != null)
+          (photoUrl!.startsWith('assets/')
+              ? Image.asset(photoUrl!, fit: BoxFit.cover)
+              : Image.network(photoUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()))
+        else
+          Icon(_icones[categorie] ?? Icons.ramen_dining_outlined, color: C.creme, size: largeur * 0.4),
         if (remise != null)
           Positioned(
             bottom: 6,
@@ -123,7 +130,7 @@ class CarteOffre extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Cloche(categorie: o.categorie, remise: reduction(o.prixInitial, o.prixReduit)),
+            Cloche(categorie: o.categorie, photoUrl: o.photoUrl, remise: reduction(o.prixInitial, o.prixReduit)),
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

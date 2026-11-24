@@ -68,7 +68,7 @@ class _EcranOffreState extends State<EcranOffre> {
           final dispo = o.statut == 'ACTIVE' && o.quantiteDisponible > 0;
           final fin = finDans(o.fin);
           return ListView(padding: const EdgeInsets.fromLTRB(20, 0, 20, 120), children: [
-            Center(child: Cloche(categorie: o.categorie, remise: reduction(o.prixInitial, o.prixReduit), largeur: 180, hauteur: 210)),
+            Center(child: Cloche(categorie: o.categorie, photoUrl: o.photoUrl, remise: reduction(o.prixInitial, o.prixReduit), largeur: 180, hauteur: 210)),
             const SizedBox(height: 20),
             Row(children: [
               Expanded(child: Text('${o.commerce?.nom ?? ''} · ${categories[o.categorie] ?? o.categorie}', style: const TextStyle(color: C.vert, fontWeight: FontWeight.w700))),

@@ -61,7 +61,7 @@ class _EcranPanierState extends State<EcranPanier> {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(children: [
-                  Cloche(categorie: e.value.$1.categorie, largeur: 44, hauteur: 50),
+                  Cloche(categorie: e.value.$1.categorie, photoUrl: e.value.$1.photoUrl, largeur: 44, hauteur: 50),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(e.value.$1.titre, style: styleTitre(context, taille: 16)),
