@@ -89,7 +89,7 @@ export default function Panier() {
           <button type="button" className="cs-btn primary et-large" onClick={commanderEtPayer} disabled={envoi}>
             {envoi ? 'Préparation du paiement…' : `Commander et payer ${dt(total)}`}
           </button>
-          <p className="cs-sub et-petit">Paiement sécurisé par carte avec Konnect.</p>
+          <p className="cs-sub et-petit">Paiement sécurisé par carte bancaire.</p>
           <button type="button" className="cs-btn danger et-large" onClick={confirmerVider} disabled={envoi}>Vider le panier</button>
         </aside>
       </div>

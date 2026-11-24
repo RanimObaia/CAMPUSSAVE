@@ -2,7 +2,7 @@ const { db, FieldValue } = require('../config/firebase');
 const { STATUT_COMMANDE, STATUT_PAIEMENT } = require('../config/paiement');
 const { httpError, docToJson } = require('../utils/http');
 const paiement = require('../services/paiement');
-const konnect = require('../services/konnect');
+const { passerelle, estSimulation } = require('../services/passerelle');
 
 // POST /api/payments/init  { commandeId }  (étudiant)
 // Demande un lien de paiement à Konnect pour une commande en attente et renvoie { payUrl }.
@@ -21,7 +21,8 @@ async function initier(req, res) {
   const profil = (await db.collection('users').doc(req.user.uid).get()).data() || {};
   const web = process.env.WEB_APP_URL || 'http://localhost:5173';
   const retour = `${web}/paiement/retour?commande=${commande.id}`;
-  const { payUrl, paymentRef } = await konnect.initierPaiement({
+  const { payUrl, paymentRef } = await passerelle().initierPaiement({
+    commandeId: commande.id,
     montant: commande.montantTotal,
     description: `CampusSave – commande ${commande.code} – ${commande.commerce.nom}`,
     orderId: commande.code,
@@ -39,7 +40,7 @@ async function initier(req, res) {
       reference: paymentRef,
       payUrl,
       montant: commande.montantTotal,
-      methode: 'konnect',
+      methode: passerelle().nom,
       dateInitiation: FieldValue.serverTimestamp(),
     },
   });
@@ -57,4 +58,17 @@ async function webhook(req, res) {
   res.json({ code: commande.code, statut: commande.statut });
 }
 
-module.exports = { initier, webhook };
+// POST /api/payments/simulation  { commandeId, reussi }  (étudiant, PAIEMENT_MODE=simulation seulement)
+// Page de paiement de test : enregistre le résultat choisi, puis confirme la commande
+// exactement comme avec Konnect (vérification du paiement, QR code, email).
+async function simuler(req, res) {
+  if (!estSimulation()) throw httpError(404, 'INTROUVABLE', 'Le paiement de test est désactivé.');
+  const commande = await paiement.lireCommande(req.body.commandeId);
+  if (commande.idEtudiant !== req.user.uid) throw httpError(404, 'COMMANDE_INTROUVABLE', 'Commande introuvable.');
+  if (!commande.paiement?.reference) throw httpError(409, 'PAIEMENT_NON_INITIE', "Le paiement de cette commande n'a pas été lancé.");
+  if (commande.statut !== STATUT_COMMANDE.EN_ATTENTE_PAIEMENT) return res.json(commande);
+  await passerelle().enregistrerResultat(commande.paiement.reference, req.body.reussi === true);
+  res.json(await paiement.verifierPaiement(commande));
+}
+
+module.exports = { initier, webhook, simuler };
