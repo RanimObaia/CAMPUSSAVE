@@ -7,7 +7,7 @@ import EcranAuth from '../components/EcranAuth'
 const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/' }
 
 export default function Login() {
-  const { user, login } = useAuth()
+  const { user, login, erreurConnexion } = useAuth()
   const { state } = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -29,7 +29,7 @@ export default function Login() {
         <h2>Content de te revoir</h2>
         <p className="cs-sub">Étudiant, commerçant ou administrateur : connecte-toi à ton espace.</p>
         {USE_MOCK && <p className="auth-demo">Mode démo : etudiant@demo.tn, merchant@demo.tn ou admin@demo.tn, avec n'importe quel mot de passe.</p>}
-        {erreur && <div className="cs-error" role="alert">{erreur}</div>}
+        {(erreur || erreurConnexion) && <div className="cs-error" role="alert">{erreur || erreurConnexion}</div>}
         <div className="cs-field"><label htmlFor="email">Adresse e-mail</label>
           <input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
         <div className="cs-field"><label htmlFor="pw">Mot de passe</label>
