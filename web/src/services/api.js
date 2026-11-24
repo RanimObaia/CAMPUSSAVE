@@ -35,6 +35,8 @@ const real = {
   getCommande: (id) => request(`/orders/${id}`),
   // Paiement refusé ou abandonné sur Konnect : la commande est annulée et le stock remis en vente
   annulerCommande: (id) => request(`/orders/${id}/cancel`, { method: 'POST' }),
+  // Page de paiement de test (backend en PAIEMENT_MODE=simulation)
+  simulerResultatPaiement: (commandeId, reussi) => request('/payments/simulation', { method: 'POST', body: { commandeId, reussi } }),
   mesCommandes: () => request('/orders/mine'),
   studentStats: () => request('/stats/student'),
   getMyShop: () => request('/shops/mine'),

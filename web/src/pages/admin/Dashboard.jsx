@@ -14,7 +14,7 @@ export default function AdminDashboard() {
         <Stat label="Utilisateurs" valeur={s?.utilisateurs ?? '—'} />
         <Stat label="Commerces validés" valeur={s?.commercesValides ?? '—'} note={s ? `${s.commercesEnAttente} en attente` : ''} />
         <Stat label="Commandes" valeur={s?.commandes ?? '—'} />
-        <Stat label="Paiements Konnect" valeur={s?.paiements ?? '—'} note="mode test" />
+        <Stat label="Paiements en ligne" valeur={s?.paiements ?? '—'} note="mode test" />
       </div>
       <div className="cs-actions">
         <Link className="cs-btn" to="/admin/signalements">Signalements à traiter</Link>

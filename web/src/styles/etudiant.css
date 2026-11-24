@@ -186,3 +186,9 @@ a.et-a-retirer .cs-btn { pointer-events: none; }
   .et-ligne-total { margin-left: auto; }
   .et-liste-infos div { grid-template-columns: 1fr; gap: 2px; }
 }
+
+/* ---------- Confirmation dans la page (vider le panier) ---------- */
+.et-confirmer { border: 1.5px solid var(--harissa); border-radius: 16px; padding: 14px; background: #fbefe9; display: flex; flex-direction: column; gap: 10px; }
+.et-confirmer p { margin: 0; font-size: 14.5px; }
+.et-confirmer-boutons { display: flex; gap: 8px; }
+.et-confirmer-boutons .cs-btn { flex: 1; }

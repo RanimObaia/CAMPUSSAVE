@@ -1,11 +1,12 @@
-// Mode démo seulement : remplace la page de paiement Konnect, qu'on ne peut pas
-// appeler sans backend. Elle joue le rôle de Konnect + du webhook.
-// Avec le vrai backend, l'étudiant est envoyé sur la vraie page Konnect.
+// Page de paiement de test : remplace la page Konnect
+//  - en mode démo (sans backend) ;
+//  - avec le backend en PAIEMENT_MODE=simulation (sandbox Konnect indisponible).
+// Elle joue le rôle de la page Konnect : le serveur confirme ensuite la commande
+// comme avec Konnect (vérification, QR code, email).
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../services/api'
 import { useChargement } from '../../hooks'
-import { USE_MOCK } from '../../config/constants'
 import { dt } from '../../utils/format'
 import '../../styles/etudiant.css'
 
@@ -13,29 +14,31 @@ export default function PaiementSimulation() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [envoi, setEnvoi] = useState(false)
+  const [erreurPaiement, setErreurPaiement] = useState(null)
   const { data: c, erreur } = useChargement(() => api.getCommande(id), [id])
-
-  if (!USE_MOCK) {
-    return <div className="cs cs-login"><p>Cette page n'existe qu'en mode démo.</p></div>
-  }
 
   // Comme Konnect : paiement réussi → le webhook confirme puis retour sur successUrl ;
   // paiement refusé → retour sur failUrl (&echec=1), sans rien confirmer
   async function terminer(reussi) {
     setEnvoi(true)
-    if (reussi) {
-      await api.simulerResultatPaiement(id, true) // ce que fait le webhook Konnect
-      navigate(`/paiement/retour?commande=${id}`)
-    } else {
-      navigate(`/paiement/retour?commande=${id}&echec=1`)
+    try {
+      if (reussi) {
+        await api.simulerResultatPaiement(id, true)
+        navigate(`/paiement/retour?commande=${id}`)
+      } else {
+        navigate(`/paiement/retour?commande=${id}&echec=1`)
+      }
+    } catch (e) {
+      setErreurPaiement(e.message)
+      setEnvoi(false)
     }
   }
 
   return (
     <div className="cs et-simu">
-      <div className="et-simu-bandeau">Mode démo : paiement simulé. Avec le backend, cette étape se fait sur la page Konnect.</div>
+      <div className="et-simu-bandeau">Paiement de test : aucune carte réelle n'est débitée. En production, cette étape se fait sur la page de paiement sécurisée.</div>
       <div className="et-simu-carte">
-        {erreur && <div className="cs-error" role="alert">{erreur}</div>}
+        {(erreur || erreurPaiement) && <div className="cs-error" role="alert">{erreur || erreurPaiement}</div>}
         {!c && !erreur && <p className="cs-empty">Chargement…</p>}
         {c && (
           <>

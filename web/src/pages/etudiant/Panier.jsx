@@ -13,6 +13,8 @@ export default function Panier() {
   const navigate = useNavigate()
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState('')
+  // Confirmation dans la page (une boîte window.confirm peut être bloquée par le navigateur)
+  const [confirmeVider, setConfirmeVider] = useState(false)
 
   if (lignes.length === 0) {
     return (
@@ -46,9 +48,6 @@ export default function Panier() {
     }
   }
 
-  function confirmerVider() {
-    if (window.confirm('Vider tout le panier ?')) vider()
-  }
 
   return (
     <>
@@ -89,8 +88,18 @@ export default function Panier() {
           <button type="button" className="cs-btn primary et-large" onClick={commanderEtPayer} disabled={envoi}>
             {envoi ? 'Préparation du paiement…' : `Commander et payer ${dt(total)}`}
           </button>
-          <p className="cs-sub et-petit">Paiement sécurisé par carte avec Konnect.</p>
-          <button type="button" className="cs-btn danger et-large" onClick={confirmerVider} disabled={envoi}>Vider le panier</button>
+          <p className="cs-sub et-petit">Paiement sécurisé par carte bancaire.</p>
+          {confirmeVider ? (
+            <div className="et-confirmer" role="alertdialog" aria-labelledby="vider-titre">
+              <p id="vider-titre"><b>Vider tout le panier ?</b> {nbArticles > 1 ? `Les ${nbArticles} articles seront retirés.` : "L'article sera retiré."}</p>
+              <div className="et-confirmer-boutons">
+                <button type="button" className="cs-btn" onClick={() => setConfirmeVider(false)} autoFocus>Annuler</button>
+                <button type="button" className="cs-btn danger" onClick={() => { setConfirmeVider(false); vider() }}>Oui, vider</button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className="cs-btn danger et-large" onClick={() => setConfirmeVider(true)} disabled={envoi}>Vider le panier</button>
+          )}
         </aside>
       </div>
     </>

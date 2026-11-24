@@ -165,3 +165,75 @@ test('Konnect non configuré : erreur claire 503', async () => {
   assert.equal(r.status, 503);
   assert.equal(r.body.code, 'PAIEMENT_INDISPONIBLE');
 });
+
+// ----- Passerelle de test (PAIEMENT_MODE=simulation) -----
+test('simulation : paiement de test réussi → commande payée, QR code et email, sans appeler Konnect', async () => {
+  process.env.PAIEMENT_MODE = 'simulation';
+  try {
+    await nouvelleCommande('sim1', 6000);
+    const avant = konnectRecu.length;
+    const init = await appeler('POST', '/payments/init', ETU, { commandeId: 'sim1' });
+    assert.equal(init.status, 200);
+    assert.equal(init.body.payUrl, '/paiement/simulation/sim1');
+    const r = await appeler('POST', '/payments/simulation', ETU, { commandeId: 'sim1', reussi: true });
+    assert.equal(r.status, 200);
+    assert.equal(r.body.statut, 'PAYEE');
+    assert.equal(r.body.qrCode.code, 'CS-SIM1');
+    assert.equal(r.body.paiement.methode, 'bank_card');
+    assert.equal(konnectRecu.length, avant, 'Konnect ne doit pas être appelé');
+    // un 2e clic ne change rien
+    const r2 = await appeler('POST', '/payments/simulation', ETU, { commandeId: 'sim1', reussi: true });
+    assert.equal(r2.body.statut, 'PAYEE');
+  } finally { delete process.env.PAIEMENT_MODE; }
+});
+
+test('simulation : paiement refusé → commande toujours en attente ; autre étudiant refusé', async () => {
+  process.env.PAIEMENT_MODE = 'simulation';
+  try {
+    await nouvelleCommande('sim2');
+    await appeler('POST', '/payments/init', ETU, { commandeId: 'sim2' });
+    assert.equal((await appeler('POST', '/payments/simulation', AUTRE, { commandeId: 'sim2', reussi: true })).status, 404);
+    const r = await appeler('POST', '/payments/simulation', ETU, { commandeId: 'sim2', reussi: false });
+    assert.equal(r.body.statut, 'EN_ATTENTE_PAIEMENT');
+  } finally { delete process.env.PAIEMENT_MODE; }
+});
+
+test('simulation désactivée en mode Konnect', async () => {
+  await nouvelleCommande('sim3');
+  const r = await appeler('POST', '/payments/simulation', ETU, { commandeId: 'sim3', reussi: true });
+  assert.equal(r.status, 404);
+});
+
+// ----- Passerelle Stripe (PAIEMENT_MODE=stripe), avec un faux Stripe -----
+test('stripe : session de paiement créée, puis commande payée quand Stripe dit « paid »', async () => {
+  Object.assign(process.env, { PAIEMENT_MODE: 'stripe', STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_API_URL: 'https://stripe.test/v1' });
+  const sessions = new Map();
+  const ancienFetch = global.fetch;
+  global.fetch = async (url, options = {}) => {
+    if (!String(url).startsWith('https://stripe.test')) return ancienFetch(url, options);
+    if (options.method === 'POST') {
+      const p = new URLSearchParams(options.body);
+      const s = { id: 'cs_test_1', url: 'https://checkout.stripe.test/cs_test_1', payment_status: 'unpaid', status: 'open',
+        metadata: { montantMillimes: p.get('metadata[montantMillimes]') }, unit: p.get('line_items[0][price_data][unit_amount]') };
+      sessions.set(s.id, s);
+      return new Response(JSON.stringify(s), { status: 200 });
+    }
+    return new Response(JSON.stringify(sessions.get(url.split('/').pop())), { status: 200 });
+  };
+  try {
+    await nouvelleCommande('str1', 10000);
+    const init = await appeler('POST', '/payments/init', ETU, { commandeId: 'str1' });
+    assert.equal(init.body.payUrl, 'https://checkout.stripe.test/cs_test_1');
+    assert.equal(sessions.get('cs_test_1').unit, '10000'); // 10 DT = 10000 millimes, en TND
+    let c = await appeler('GET', '/orders/str1', ETU);
+    assert.equal(c.body.statut, 'EN_ATTENTE_PAIEMENT');
+    sessions.get('cs_test_1').payment_status = 'paid';
+    const { verifierPaiement, lireCommande } = require('../src/services/paiement');
+    c = await verifierPaiement(await lireCommande('str1'));
+    assert.equal(c.statut, 'PAYEE');
+    assert.equal(c.qrCode.code, 'CS-STR1');
+  } finally {
+    global.fetch = ancienFetch;
+    for (const k of ['PAIEMENT_MODE', 'STRIPE_SECRET_KEY', 'STRIPE_API_URL']) delete process.env[k];
+  }
+});

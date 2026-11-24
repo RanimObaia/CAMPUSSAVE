@@ -74,7 +74,7 @@ export default function PaiementRetour() {
         <>
           <div className="et-rond et-rond-attente" aria-hidden="true">…</div>
           <h1>Vérification du paiement</h1>
-          <p className="cs-sub">On attend la confirmation de Konnect. Ne ferme pas cette page.</p>
+          <p className="cs-sub">On attend la confirmation du paiement. Ne ferme pas cette page.</p>
         </>
       )}
       {delaiDepasse && statut === 'EN_ATTENTE_PAIEMENT' && (

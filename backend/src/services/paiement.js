@@ -7,7 +7,7 @@
 const { db, FieldValue } = require('../config/firebase');
 const { STATUT_COMMANDE, STATUT_PAIEMENT } = require('../config/paiement');
 const { httpError, docToJson } = require('../utils/http');
-const konnect = require('./konnect');
+const { passerelle } = require('./passerelle');
 const email = require('./email');
 const { notifier } = require('./notifications');
 const { annulerEtRemettreStock } = require('./annulation');
@@ -52,19 +52,20 @@ async function marquerPayee(id, paiementKonnect) {
   return lireCommande(id);
 }
 
-// Demande à Konnect où en est le paiement d'une commande en attente.
+// Demande à la passerelle (Konnect ou simulation) où en est le paiement d'une commande en attente.
 // À appeler depuis le webhook ET quand l'application consulte la commande
 // (GET /orders/:id) : le paiement est alors confirmé même si le webhook
 // n'arrive pas (serveur en local, sans ngrok).
 async function verifierPaiement(commande) {
   if (commande.statut !== STATUT_COMMANDE.EN_ATTENTE_PAIEMENT || !commande.paiement?.reference) return commande;
-  const paiement = await konnect.lirePaiement(commande.paiement.reference);
-  if (konnect.estEchoue(paiement)) {
-    // Refus définitif chez Konnect : annulation, stock remis, e-mail de refus
+  const passe = passerelle();
+  const paiement = await passe.lirePaiement(commande.paiement.reference);
+  if (passe.estEchoue?.(paiement)) {
+    // Refus définitif chez la passerelle : annulation, stock remis, e-mail de refus
     await annulerEtRemettreStock(orders().doc(commande.id), { echecPaiement: true });
     return lireCommande(commande.id);
   }
-  if (!konnect.estReussi(paiement)) return commande;
+  if (!passe.estReussi(paiement)) return commande;
   if (Number(paiement.amount) !== commande.montantTotal) {
     console.error(`Montant Konnect (${paiement.amount}) différent de la commande ${commande.code} (${commande.montantTotal}).`);
     return commande;
