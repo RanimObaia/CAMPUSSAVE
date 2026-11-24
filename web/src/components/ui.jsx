@@ -1,13 +1,14 @@
-import { STATUTS } from '../utils/format'
+import { STATUTS, aujourdhui } from '../utils/format'
 
 export function Badge({ type, valeur }) {
   const [label, kind] = STATUTS[type][valeur] || [valeur, '']
   return <span className={`cs-badge ${kind}`}>{label}</span>
 }
 
+// Un chiffre clé. Plusieurs <Stat> dans un .cs-grid forment un bandeau « registre ».
 export function Stat({ label, valeur, note }) {
   return (
-    <div className="cs-card cs-stat">
+    <div className="cs-stat">
       <span>{label}</span>
       <b>{valeur}</b>
       {note && <span>{note}</span>}
@@ -29,10 +30,15 @@ export function Table({ colonnes, lignes, vide = 'Aucun élément.' }) {
   )
 }
 
-export function Entete({ titre, sous, action }) {
+// En-tête de page. "date" affiche la date du jour au-dessus du titre (tableaux de bord).
+export function Entete({ titre, sous, action, date = false }) {
   return (
     <div className="cs-top">
-      <div><h1>{titre}</h1>{sous && <p className="cs-sub">{sous}</p>}</div>
+      <div>
+        {date && <span className="cs-date">{aujourdhui()}</span>}
+        <h1>{titre}</h1>
+        {sous && <p className="cs-sub">{sous}</p>}
+      </div>
       {action}
     </div>
   )

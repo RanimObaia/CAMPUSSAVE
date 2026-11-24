@@ -6,6 +6,7 @@ const {
   createOrder,
   listMine,
   getOrder,
+  cancelOrder,
   listForMerchant,
   markReady,
   validateQr,
@@ -50,12 +51,3 @@ router.patch("/:id/ready", requireAuth, requireRole("merchant"), markReady);
 router.post("/:id/cancel", requireAuth, requireRole("student"), cancelOrder);
 
 module.exports = router;
-const {
-  createOrder,
-  listMine,
-  getOrder,
-  cancelOrder,
-  listForMerchant,
-  markReady,
-  validateQr,
-} = require("../controllers/orders.controller");

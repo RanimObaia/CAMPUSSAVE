@@ -201,8 +201,8 @@ export const mock = {
   // « Du jour » et « du mois » se calculent à l'heure de Tunis, comme le fera le backend.
   merchantStats: () => {
     const payees = db.orders.filter((o) => (!o.commerceId || o.commerceId === db.shop.id) && STATUTS_PAYES.includes(o.statut))
-    const duJour = payees.filter((o) => jourTunis(o.createdAt) === jourTunis(new Date()))
-    const duMois = payees.filter((o) => o.statut === 'RECUPEREE' && jourTunis(o.createdAt).slice(0, 7) === jourTunis(new Date()).slice(0, 7))
+    const duJour = payees.filter((o) => jourTunis(o.dateCommande) === jourTunis(new Date()))
+    const duMois = payees.filter((o) => o.statut === 'RECUPEREE' && jourTunis(o.dateCommande).slice(0, 7) === jourTunis(new Date()).slice(0, 7))
     return wait({
       offresActives: db.offers.filter((o) => o.statut === 'ACTIVE' && o.quantiteDisponible > 0 && new Date(o.heureFinRecuperation).getTime() > Date.now()).length,
       commandesDuJour: duJour.length,

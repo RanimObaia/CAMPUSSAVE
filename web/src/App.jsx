@@ -27,17 +27,17 @@ import Shops from './pages/admin/Shops'
 import Users from './pages/admin/Users'
 
 const LIENS_COMMERCANT = [
-  { to: '/commercant', label: 'Tableau de bord', end: true },
-  { to: '/commercant/offres', label: 'Mes offres' },
-  { to: '/commercant/commandes', label: 'Commandes' },
-  { to: '/commercant/retrait', label: 'Valider un retrait' },
-  { to: '/commercant/commerce', label: 'Mon commerce' },
-  { to: '/commercant/profil', label: 'Mon profil' },
+  { to: '/commercant', label: 'Tableau de bord', end: true, icone: 'tableau' },
+  { to: '/commercant/offres', label: 'Mes offres', icone: 'etiquette' },
+  { to: '/commercant/commandes', label: 'Commandes', icone: 'ticket' },
+  { to: '/commercant/retrait', label: 'Valider un retrait', icone: 'qr' },
+  { to: '/commercant/commerce', label: 'Mon commerce', icone: 'boutique' },
+  { to: '/commercant/profil', label: 'Mon profil', icone: 'personne' },
 ]
 const LIENS_ADMIN = [
-  { to: '/admin', label: 'Vue globale', end: true },
-  { to: '/admin/commerces', label: 'Commerces' },
-  { to: '/admin/utilisateurs', label: 'Utilisateurs' },
+  { to: '/admin', label: 'Vue globale', end: true, icone: 'tableau' },
+  { to: '/admin/commerces', label: 'Commerces', icone: 'boutique' },
+  { to: '/admin/utilisateurs', label: 'Utilisateurs', icone: 'personnes' },
 ]
 
 // Routes des espaces étudiant, commerçant et administrateur.

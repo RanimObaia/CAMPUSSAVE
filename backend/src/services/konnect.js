@@ -1,5 +1,6 @@
 // Appels à la passerelle de paiement Konnect (https://api.konnect.network/api/v2/konnect-gateway)
-// En test : KONNECT_API_URL=https://api.sandbox.konnect.network/api/v2 (cartes de test, pas d'argent réel).
+// En test (sandbox) : KONNECT_API_URL=https://api.preprod.konnect.network/api/v2 (cartes de test, pas d'argent réel).
+// Adresse officielle de la documentation Konnect ; dashboard de test : https://dashboard.sandbox.konnect.network
 const { httpError } = require('../utils/http');
 const { DUREE_LIEN_PAIEMENT_MINUTES } = require('../config/paiement');
 
