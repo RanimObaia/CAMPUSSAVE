@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { api } from '../../services/api'
 import { useChargement } from '../../hooks'
 import { Entete, Stat } from '../../components/ui'
@@ -6,7 +7,8 @@ export default function AdminDashboard() {
   const { data: s, erreur } = useChargement(() => api.adminStats())
   return (
     <>
-      <Entete titre="Vue globale" sous="Supervision de la plateforme CampusSave" />
+      <Entete date titre="Vue globale" sous="Comptes, commerces et paiements de la plateforme."
+        action={<Link className="cs-btn primary" to="/admin/commerces">Commerces à valider{s?.commercesEnAttente ? ` (${s.commercesEnAttente})` : ''}</Link>} />
       {erreur && <div className="cs-error" role="alert">{erreur}</div>}
       <div className="cs-grid">
         <Stat label="Utilisateurs" valeur={s?.utilisateurs ?? '—'} />

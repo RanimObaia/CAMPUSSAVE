@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../services/api'
-import { TYPES_COMMERCE } from '../../config/constants'
+import { TYPES_COMMERCE, libelle } from '../../config/constants'
 import { Entete, Badge } from '../../components/ui'
 
 export default function Shop() {
@@ -32,7 +32,7 @@ export default function Shop() {
         {msg && <div className="cs-ok cs-field full" role="status">{msg}</div>}
         <div className="cs-field"><label htmlFor="nom">Nom</label><input id="nom" required value={f.nom} onChange={set('nom')} /></div>
         <div className="cs-field"><label htmlFor="type">Type</label>
-          <select id="type" value={f.type} onChange={set('type')}>{TYPES_COMMERCE.map((t) => <option key={t}>{t}</option>)}</select></div>
+          <select id="type" value={f.type} onChange={set('type')}>{TYPES_COMMERCE.map((t) => <option key={t} value={t}>{libelle(t)}</option>)}</select></div>
         <div className="cs-field full"><label htmlFor="adr">Adresse</label><input id="adr" required value={f.adresse} onChange={set('adresse')} /></div>
         <div className="cs-field"><label htmlFor="lat">Latitude</label><input id="lat" type="number" step="any" required value={f.latitude} onChange={set('latitude')} /></div>
         <div className="cs-field"><label htmlFor="lng">Longitude</label><input id="lng" type="number" step="any" required value={f.longitude} onChange={set('longitude')} /></div>

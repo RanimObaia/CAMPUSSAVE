@@ -6,7 +6,9 @@ import { useChargement } from '../../hooks'
 import { usePanier } from '../../context/PanierContext'
 import Quantite from '../../components/Quantite'
 import { dt } from '../../utils/format'
-import { categorie, heure, reduction } from '../../utils/categories'
+import { categorie, finDans, heure, reduction } from '../../utils/categories'
+import Cloche from '../../components/Cloche'
+import Icone from '../../components/Icone'
 
 export default function OffreDetail() {
   const { id } = useParams()
@@ -18,15 +20,16 @@ export default function OffreDetail() {
   if (erreur) {
     return (
       <>
-        <Link to="/" className="et-retour">← Retour aux offres</Link>
+        <Link to="/" className="et-retour"><Icone nom="fleche" taille={18} /> Toutes les offres</Link>
         <div className="cs-error" role="alert">{erreur}</div>
       </>
     )
   }
   if (chargement || !o) return <p className="cs-empty">Chargement…</p>
 
-  const jour = new Date(o.heureDebutRecuperation).toLocaleDateString('fr-TN', { weekday: 'long', day: 'numeric', month: 'long' })
+  const jour = new Date(o.heureDebutRecuperation).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Africa/Tunis' })
   const disponible = o.statut === 'ACTIVE' && o.quantiteDisponible > 0
+  const fin = finDans(o.heureFinRecuperation)
   const dejaDansPanier = panier.quantiteDe(o.id)
   const resteAjoutable = o.quantiteDisponible - dejaDansPanier
 
@@ -41,16 +44,13 @@ export default function OffreDetail() {
 
   return (
     <>
-      <Link to="/" className="et-retour">← Retour aux offres</Link>
+      <Link to="/" className="et-retour"><Icone nom="fleche" taille={18} /> Toutes les offres</Link>
 
       <article className="et-detail">
-        <div className="et-visuel et-visuel-grand" aria-hidden="true">
-          {o.photoUrl ? <img src={o.photoUrl} alt="" /> : <span>{categorie(o.categorie).icone}</span>}
-          <b className="et-remise">-{reduction(o)} %</b>
-        </div>
+        <Cloche code={o.categorie} photoUrl={o.photoUrl} taille="grande" remise={reduction(o)} />
 
         <div className="et-detail-texte">
-          <span className="et-commerce">{categorie(o.categorie).label}</span>
+          <span className="et-commerce">{o.commerce?.nom} · {categorie(o.categorie).label}</span>
           <h1>{o.titre}</h1>
           {o.description && <p>{o.description}</p>}
 
@@ -58,12 +58,12 @@ export default function OffreDetail() {
             <b>{dt(o.prixReduit)}</b>
             <s>{dt(o.prixInitial)}</s>
           </div>
-          <p className="cs-sub">Tu économises {dt(o.prixInitial - o.prixReduit)}.</p>
+          <span className="et-economie"><Icone nom="feuille" taille={16} /> Tu économises {dt(o.prixInitial - o.prixReduit)}</span>
 
           <dl className="et-liste-infos">
             <div><dt>Commerce</dt><dd>{o.commerce?.nom}</dd></div>
             <div><dt>Adresse</dt><dd>{o.commerce?.adresse}</dd></div>
-            <div><dt>Retrait</dt><dd>{jour}, de {heure(o.heureDebutRecuperation)} à {heure(o.heureFinRecuperation)}</dd></div>
+            <div><dt>Retrait</dt><dd>{jour}, de {heure(o.heureDebutRecuperation)} à {heure(o.heureFinRecuperation)}{fin && <> · <span className={`et-fin${fin.urgent ? ' urgent' : ''}`}>se termine dans {fin.texte}</span></>}</dd></div>
             <div><dt>Disponibilité</dt><dd>{disponible ? `${o.quantiteDisponible} restante${o.quantiteDisponible > 1 ? 's' : ''}` : 'Épuisée'}</dd></div>
           </dl>
 
@@ -80,7 +80,7 @@ export default function OffreDetail() {
           )}
           {ajoute && (
             <div className="cs-ok" role="status">
-              Ajouté au panier ✓ <Link to="/panier">Voir mon panier</Link>
+              Ajouté au panier. <Link to="/panier">Voir mon panier</Link>
             </div>
           )}
           {!ajoute && dejaDansPanier > 0 && (

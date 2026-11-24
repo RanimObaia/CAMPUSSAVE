@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../services/api'
-import { CATEGORIES } from '../../config/constants'
+import { CATEGORIES, libelle } from '../../config/constants'
 import { Entete } from '../../components/ui'
 import { fromMillimes, toInputDateTime, toMillimes } from '../../utils/format'
 
@@ -47,7 +47,7 @@ export default function OfferForm() {
         <div className="cs-field full"><label htmlFor="titre">Titre</label><input id="titre" required value={f.titre} onChange={set('titre')} /></div>
         <div className="cs-field full"><label htmlFor="desc">Description</label><textarea id="desc" rows={3} value={f.description} onChange={set('description')} /></div>
         <div className="cs-field"><label htmlFor="cat">Catégorie</label>
-          <select id="cat" value={f.categorie} onChange={set('categorie')}>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select></div>
+          <select id="cat" value={f.categorie} onChange={set('categorie')}>{CATEGORIES.map((c) => <option key={c} value={c}>{libelle(c)}</option>)}</select></div>
         <div className="cs-field"><label htmlFor="qte">Quantité disponible</label><input id="qte" type="number" min="0" step="1" required value={f.quantiteDisponible} onChange={set('quantiteDisponible')} /></div>
         <div className="cs-field"><label htmlFor="pi">Prix initial (DT)</label><input id="pi" inputMode="decimal" required value={f.prixInitial} onChange={set('prixInitial')} /></div>
         <div className="cs-field"><label htmlFor="pr">Prix réduit (DT)</label><input id="pr" inputMode="decimal" required value={f.prixReduit} onChange={set('prixReduit')} /></div>

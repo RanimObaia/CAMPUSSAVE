@@ -29,7 +29,7 @@ export default function TableauDeBord() {
         <Stat label="Commandes payées" valeur={s?.commandes ?? '—'} />
         <Stat label="Dépenses" valeur={s ? dt(s.depenses) : '—'} />
         <Stat label="Économies réalisées" valeur={s ? dt(s.economies) : '—'} note="par rapport aux prix initiaux" />
-        <Stat label="Repas sauvés du gaspillage" valeur={s?.repasSauves ?? '—'} />
+        <Stat label="Repas sauvés du gaspillage" valeur={s?.repasSauves ?? '—'} note={s?.kgSauves ? `≈ ${s.kgSauves} kg de nourriture` : undefined} />
       </div>
 
       <h2>À retirer</h2>

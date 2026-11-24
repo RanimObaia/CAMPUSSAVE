@@ -15,6 +15,8 @@ abstract class Utilisateur {
   - telephone : String
   - role : Role
   - dateInscription : Date
+  - actif : boolean
+  - fcmToken : String
   + sInscrire() : void
   + seConnecter() : boolean
   + seDeconnecter() : void
@@ -24,6 +26,7 @@ abstract class Utilisateur {
 class Etudiant {
   - numeroEtudiant : String
   - etablissement : String
+  - ecoPoints : int
   + consulterOffres() : List<Offre>
   + rechercherOffres(critere) : List<Offre>
   + passerCommande() : Commande
@@ -62,8 +65,8 @@ class Offre {
   - titre : String
   - description : String
   - categorie : Categorie
-  - prixInitial : double
-  - prixReduit : double
+  - prixInitial : int <<millimes>>
+  - prixReduit : int <<millimes>>
   - quantiteDisponible : int
   - photoUrl : String
   - heureDebutRecuperation : DateTime
@@ -73,6 +76,7 @@ class Offre {
   + supprimer() : void
   + estDisponible() : boolean
   + decrementerStock(qte : int) : void
+  + retirer() : void
 }
 
 class Panier {
@@ -81,7 +85,7 @@ class Panier {
   + ajouterOffre(o : Offre, qte : int) : void
   + modifierQuantite(o : Offre, qte : int) : void
   + retirerOffre(o : Offre) : void
-  + calculerTotal() : double
+  + calculerTotal() : int
   + vider() : void
 }
 
@@ -89,38 +93,40 @@ class LignePanier {
   - quantite : int
   + incrementer() : void
   + decrementer() : void
-  + sousTotal() : double
+  + sousTotal() : int
 }
 
 class Commande {
   - idCommande : String
+  - code : String <<CS-XXXXXX>>
+  - emailEtudiant : String
   - dateCommande : DateTime
   - statut : StatutCommande
-  - montantTotal : double
+  - montantTotal : int <<millimes>>
   + confirmer() : void
   + annuler() : void
+  + marquerPrete() : void
   + marquerRecuperee() : void
 }
 
 class LigneCommande {
   - quantite : int
-  - prixUnitaire : double
-  + sousTotal() : double
+  - prixUnitaire : int <<millimes>>
+  + sousTotal() : int
 }
 
 class Paiement {
-  - idPaiement : String
-  - montant : double
+  - montant : int <<millimes>>
   - methode : String
   - statut : StatutPaiement
-  - referenceKonnect : String
+  - reference : String <<Konnect>>
+  - payUrl : String
   - datePaiement : DateTime
   + initierPaiement() : String
   + verifierStatut() : StatutPaiement
 }
 
 class QRCode {
-  - idQR : String
   - code : String
   - dateGeneration : DateTime
   - estUtilise : boolean
@@ -129,13 +135,18 @@ class QRCode {
   + valider() : boolean
 }
 
-class Notification {
-  - idNotification : String
+class Notification <<push FCM>> {
   - titre : String
   - message : String
   - dateEnvoi : DateTime
-  - lue : boolean
   + envoyer() : void
+}
+
+class Statistiques {
+  - commandes : int
+  - repasSauves : int
+  - kgSauves : double
+  - montant : int <<millimes>>
 }
 
 enum Role {
@@ -158,6 +169,7 @@ enum StatutOffre {
   ACTIVE
   EPUISEE
   EXPIREE
+  RETIREE
 }
 enum StatutCommande {
   EN_ATTENTE_PAIEMENT
@@ -206,4 +218,5 @@ Offre ..> StatutOffre
 Offre ..> Categorie
 Commande ..> StatutCommande
 Paiement ..> StatutPaiement
+Administrateur ..> Statistiques : consulte >
 @enduml

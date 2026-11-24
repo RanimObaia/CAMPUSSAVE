@@ -19,9 +19,9 @@ export default function Scan() {
   return (
     <>
       <Entete titre="Valider un retrait" sous="Saisissez le code affiché sous le QR code de l'étudiant" />
-      <form className="cs-card" onSubmit={valider} style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <form className="cs-card cs-scan" onSubmit={valider}>
         <div className="cs-field"><label htmlFor="code">Code de la commande</label>
-          <input id="code" placeholder="CS-2048" required value={code} onChange={(e) => setCode(e.target.value)} autoFocus /></div>
+          <input id="code" placeholder="CS-7KQ3PX" autoComplete="off" autoCapitalize="characters" spellCheck={false} required value={code} onChange={(e) => setCode(e.target.value)} autoFocus /></div>
         <button className="cs-btn primary">Valider le retrait</button>
         {erreur && <div className="cs-error" role="alert">{erreur}</div>}
         {res && (
