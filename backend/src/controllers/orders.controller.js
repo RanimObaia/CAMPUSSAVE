@@ -456,4 +456,5 @@ module.exports = {
   markReady,
   validateQr,
   annulerEtRemettreStock,
+  verifierPuisExpirer,
 };
