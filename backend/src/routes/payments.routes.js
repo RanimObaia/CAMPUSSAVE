@@ -16,6 +16,17 @@ router.post(
   c.initier,
 );
 
+// Page de paiement de test (PAIEMENT_MODE=simulation)
+router.post(
+  '/simulation',
+  requireAuth,
+  requireRole(ROLES.STUDENT),
+  body('commandeId').isString().trim().notEmpty().withMessage('La commande est obligatoire.'),
+  body('reussi').isBoolean().withMessage('Le résultat du paiement est obligatoire.'),
+  validate,
+  c.simuler,
+);
+
 // Appelé par Konnect (pas de jeton) : la sécurité vient de la vérification auprès de Konnect
 router.get('/webhook', c.webhook);
 
