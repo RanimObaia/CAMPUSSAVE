@@ -9,6 +9,25 @@ test.describe('Connexion et droits d\'accès', () => {
     await expect(page).toHaveURL(/\/offres/)
   })
 
+  test.describe('Bouton « Installer l\'application »', () => {
+    test.use({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36', isMobile: false })
+
+    test('sans application qui répond : retombe sur la page de l\'application avec QR code', async ({ page }) => {
+      await page.goto('/')
+      await page.getByRole('link', { name: "Installer l'application" }).first().click()
+      await expect(page).toHaveURL(/\/application$/)
+      await expect(page.getByRole('heading', { name: 'CampusSave sur ton téléphone' })).toBeVisible()
+      await expect(page.locator('.app-qr svg')).toBeVisible()
+    })
+  })
+
+  test('sur Android, le lien ouvre l\'application et retombe sur /application si elle est absente', async ({ page }) => {
+    await page.goto('/')
+    const lien = await page.evaluate(async () => (await import('/src/components/ouvrirApplication.js')).lienOuvertureAndroid(location.origin))
+    expect(lien).toContain('intent://ouvrir#Intent;scheme=campussave;package=tn.essect.campussave;')
+    expect(lien).toContain(`S.browser_fallback_url=${encodeURIComponent(`${new URL(page.url()).origin}/application`)}`)
+  })
+
   test('une page inconnue affiche la page 404', async ({ page }) => {
     await page.goto('/cette-page-nexiste-pas')
     await expect(page.getByText(/introuvable|404/i).first()).toBeVisible()

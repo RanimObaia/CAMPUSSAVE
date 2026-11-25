@@ -39,6 +39,7 @@ const Contact = lazy(() => import('./pages/public/Contact'))
 const APropos = lazy(() => import('./pages/public/APropos'))
 const Partenaires = lazy(() => import('./pages/public/Partenaires'))
 const Statut = lazy(() => import('./pages/public/Statut'))
+const Application = lazy(() => import('./pages/public/Application'))
 import Introuvable from './pages/public/Introuvable'
 const RetraitDelegue = lazy(() => import('./pages/public/RetraitDelegue'))
 const Signalements = lazy(() => import('./pages/admin/Signalements'))
@@ -87,6 +88,7 @@ export default function App() {
                 <Route path="/a-propos" element={<APropos />} />
                 <Route path="/partenaires" element={<Partenaires />} />
                 <Route path="/statut" element={<Statut />} />
+                <Route path="/application" element={<Application />} />
                 <Route path="/retrait/:token" element={<RetraitDelegue />} />
                 <Route path="*" element={<Introuvable />} />
               </Route>

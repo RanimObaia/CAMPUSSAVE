@@ -1,0 +1,37 @@
+# Déploiement de l'API CampusSave sur Render (Blueprint).
+# Les valeurs secrètes (sync: false) se saisissent dans le tableau de bord Render, jamais dans GitHub.
+services:
+  - type: web
+    name: campussave-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    plan: free
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: PAIEMENT_MODE
+        value: konnect
+      - key: KONNECT_API_URL
+        value: https://api.preprod.konnect.network/api/v2
+      - key: KONNECT_API_KEY
+        sync: false
+      - key: KONNECT_WALLET_ID
+        sync: false
+      # Contenu complet du JSON de compte de service Firebase (Firebase > Paramètres > Comptes de service)
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      # Adresse du site Netlify, par exemple https://campussave13.netlify.app (sans / à la fin)
+      - key: CORS_ORIGINS
+        sync: false
+      - key: WEB_APP_URL
+        sync: false
+      # Adresse publique de cette API une fois créée, par exemple https://campussave-api.onrender.com
+      - key: BACKEND_PUBLIC_URL
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_APP_PASSWORD
+        sync: false
