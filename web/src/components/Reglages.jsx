@@ -8,13 +8,13 @@ export default function Reglages({ sombre = false }) {
   const versSombre = theme !== 'sombre'
   return (
     <div className={`reglages${sombre ? ' reglages-sombre' : ''}`}>
-      <label className="reglages-langue">
+      {LANGUES.length > 1 && <label className="reglages-langue">
         <Icone nom="globe" taille={18} />
         <span className="sr-only">{t('langue.choisir')}</span>
         <select value={langue} onChange={(e) => setLangue(e.target.value)} aria-label={t('langue.choisir')}>
           {LANGUES.map((l) => <option key={l.code} value={l.code}>{l.court}</option>)}
         </select>
-      </label>
+      </label>}
       <button
         type="button"
         className="reglages-theme"
