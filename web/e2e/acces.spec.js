@@ -12,7 +12,7 @@ test.describe('Connexion et droits d\'accès', () => {
   test.describe('Bouton « Installer l\'application »', () => {
     test.use({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36', isMobile: false })
 
-    test('sur ordinateur, sans installation possible : page de l\'application avec QR code', async ({ page }) => {
+    test('sans application qui répond : retombe sur la page de l\'application avec QR code', async ({ page }) => {
       await page.goto('/')
       await page.getByRole('link', { name: "Installer l'application" }).first().click()
       await expect(page).toHaveURL(/\/application$/)

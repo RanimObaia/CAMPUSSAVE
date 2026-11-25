@@ -8,7 +8,6 @@ import { FAQ } from '../../contenu/faq'
 import { dt } from '../../utils/format'
 import { heure, reduction } from '../../utils/categories'
 import Cloche from '../../components/Cloche'
-import { useInstallation } from '../../components/useInstallation'
 import { ouvrirApplication } from '../../components/ouvrirApplication'
 import Icone from '../../components/Icone'
 import { Revele, Parallaxe, Compteur } from '../../components/Anime'
@@ -18,8 +17,7 @@ const nb = (n) => new Intl.NumberFormat('fr').format(n)
 
 
 export default function Accueil() {
-  const navigate = useNavigate()
-  const { possible, installer } = useInstallation()
+  const navigate = useNavigate()
   const { t, langue } = usePreferences()
   useTitre(null, 'CampusSave : les invendus du jour des commerces autour de l\'ESSECT à moitié prix. Réserve, paie en ligne, récupère avec ton QR code.')
   const stats = useChargement(() => api.statsPubliques())
@@ -126,7 +124,7 @@ export default function Accueil() {
           <h2>{t('pub.appTitre')}</h2>
           <p>{t('pub.appTexte')}</p>
         </div>
-        <a href="/application" className="cs-btn primary" onClick={(e) => { e.preventDefault(); ouvrirApplication({ installerSite: installer, possible, aller: navigate }) }}>{t('pub.installer')}</a>
+        <a href="/application" className="cs-btn primary" onClick={(e) => { e.preventDefault(); ouvrirApplication({ aller: navigate }) }}>{t('pub.installer')}</a>
       </section>
 
       <section className="acc-section">

@@ -1,7 +1,6 @@
-// Bouton « Installer l'application » : ouvre directement l'application mobile.
-// - Android : lien intent:// ; si l'application est installée elle s'ouvre, sinon Chrome renvoie vers /application
-//   (téléchargement de l'APK ou installation du site).
-// - Autres cas : installation du site (PWA) si le navigateur la propose, sinon page /application.
+// Bouton « Installer l'application » : essaie d'ouvrir directement l'application mobile CampusSave (Flutter).
+// - Android : lien intent:// ; si l'application n'est pas installée, Chrome renvoie vers /application.
+// - Autres cas : lien campussave://ouvrir ; si rien ne s'ouvre au bout de 1,8 s, on affiche /application.
 export const PAQUET_ANDROID = 'tn.essect.campussave'
 
 export function lienOuvertureAndroid(origine) {
@@ -11,8 +10,21 @@ export function lienOuvertureAndroid(origine) {
 
 export const estAndroid = () => typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent)
 
-export async function ouvrirApplication({ installerSite, possible, aller }) {
+// Essaie d'ouvrir l'application ; si rien ne s'ouvre (la page reste au premier plan), on affiche /application.
+export function ouvrirApplication({ aller }) {
   if (estAndroid()) { window.location.href = lienOuvertureAndroid(window.location.origin); return }
-  if (possible && await installerSite()) return
-  aller('/application')
+  let ouverte = false
+  const marque = () => { ouverte = true }
+  window.addEventListener('blur', marque, { once: true })
+  document.addEventListener('visibilitychange', marque, { once: true })
+  const cadre = document.createElement('iframe')
+  cadre.style.display = 'none'
+  cadre.src = 'campussave://ouvrir'
+  document.body.appendChild(cadre)
+  setTimeout(() => {
+    cadre.remove()
+    window.removeEventListener('blur', marque)
+    document.removeEventListener('visibilitychange', marque)
+    if (!ouverte) aller('/application')
+  }, 1800)
 }
