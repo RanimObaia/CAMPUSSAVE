@@ -1,0 +1,15 @@
+﻿# Déploiement du site web CampusSave sur Netlify (mode démonstration, sans serveur)
+[build]
+  base = "web"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  VITE_USE_MOCK = "true"
+
+# Le site est une application à une seule page : toutes les adresses renvoient vers index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
