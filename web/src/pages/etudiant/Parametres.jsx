@@ -59,8 +59,8 @@ export default function Parametres() {
           <p className="cs-sub">Les e-mails de paiement (confirmation ou refus) sont toujours envoyés.</p>
         </fieldset>
 
-        <div className="cs-field"><label htmlFor="p-langue">{t('langue.choisir')}</label>
-          <select id="p-langue" value={langue} onChange={(e) => setLangue(e.target.value)}>{LANGUES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}</select></div>
+        {LANGUES.length > 1 && <div className="cs-field"><label htmlFor="p-langue">{t('langue.choisir')}</label>
+          <select id="p-langue" value={langue} onChange={(e) => setLangue(e.target.value)}>{LANGUES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}</select></div>}
         <div className="cs-field"><label htmlFor="p-theme">Thème</label>
           <select id="p-theme" value={theme} onChange={(e) => setTheme(e.target.value)}><option value="clair">{t('theme.clair')}</option><option value="sombre">{t('theme.sombre')}</option></select></div>
         <div className="cs-field full"><button className="cs-btn primary">{t('commun.enregistrer')}</button></div>

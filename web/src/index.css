@@ -95,6 +95,19 @@ body {
 [data-theme="sombre"] .cs-btn.primary { color: #0e1c16; }
 [data-theme="sombre"] .et-qr-code, [data-theme="sombre"] .qr-plein-code { background: #fff; }
 
+/* Menus en mode sombre : état actif et survol toujours lisibles (contraste > 4,5:1).
+   Avant, le fond actif (--creme) et le texte (--pin) devenaient tous deux très sombres. */
+[data-theme="sombre"] .cs-nav a:hover { background: var(--pin-clair); color: var(--encre); }
+[data-theme="sombre"] .cs-nav a.active,
+[data-theme="sombre"] .et .et-nav a.active,
+[data-theme="sombre"] .cs .legal-onglets a[aria-current="page"] { background: var(--vert); color: #0b1510; border-color: var(--vert); }
+[data-theme="sombre"] .cs-nav a.active .icone { color: #0b1510; }
+[data-theme="sombre"] .et .et-nav a:hover,
+[data-theme="sombre"] .cs .pub-nav a:hover,
+[data-theme="sombre"] .cs .legal-onglets a:hover { background: var(--sable); color: var(--encre); }
+[data-theme="sombre"] .cs .pub-nav a.active { background: var(--vert-pale); color: var(--encre); }
+[data-theme="sombre"] .cs-initiales { background: var(--vert); color: #0b1510; }
+
 /* ---------- Accessibilité : lien « Aller au contenu » ---------- */
 .evitement { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--vert); color: #fff; padding: 10px 16px; border-radius: 999px; font-weight: 600; }
 .evitement:focus { top: 12px; }

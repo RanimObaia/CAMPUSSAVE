@@ -19,10 +19,12 @@ function ecrire(cle, valeur) {
 
 const themeSysteme = () => (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'sombre' : 'clair')
 // Français par défaut ; l'arabe est proposé d'office aux navigateurs réglés en arabe
-const langueNavigateur = () => ((navigator.language || 'fr').startsWith('ar') && TEXTES.ar ? 'ar' : 'fr')
+const langueNavigateur = () => ((navigator.language || 'fr').startsWith('ar') && LANGUES.some((l) => l.code === 'ar') ? 'ar' : 'fr')
+// Une langue gardée au rechargement n'est reprise que si elle fait partie des langues proposées
+const langueValide = (code) => (LANGUES.some((l) => l.code === code) ? code : 'fr')
 
 export function PreferencesProvider({ children }) {
-  const [langue, setLangueEtat] = useState(() => lire('campussave-langue', langueNavigateur()))
+  const [langue, setLangueEtat] = useState(() => langueValide(lire('campussave-langue', langueNavigateur())))
   const [theme, setThemeEtat] = useState(() => lire('campussave-theme', themeSysteme()))
   const [cookies, setCookiesEtat] = useState(() => lire('campussave-cookies', ''))
 

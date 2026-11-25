@@ -1,11 +1,19 @@
 // Textes du site en trois langues : français (par défaut), arabe (écrit de droite à gauche) et anglais.
 // Une clé absente dans une langue retombe sur le français.
 // {nom} est remplacé par la valeur donnée à t('cle', { nom: 'Eya' }).
-export const LANGUES = [
+// Langues dont les textes couvrent TOUTES les pages (menus, boutons, formulaires, erreurs, états vides).
+// L'anglais et l'arabe n'existent que pour une partie des textes : tant que les pages contiennent du français
+// écrit en dur, ils restent hors du menu pour ne pas proposer une option qui ne marche qu'à moitié.
+// Pour les réactiver une fois toutes les pages branchées sur t(), ajouter 'en' et 'ar' ici.
+export const LANGUES_COMPLETES = ['fr']
+
+export const LANGUES_PREVUES = [
   { code: 'fr', label: 'Français', court: 'FR' },
   { code: 'ar', label: 'العربية', court: 'ع', rtl: true },
   { code: 'en', label: 'English', court: 'EN' },
 ]
+
+export const LANGUES = LANGUES_PREVUES.filter((l) => LANGUES_COMPLETES.includes(l.code))
 
 export const TEXTES = {
   fr: {
