@@ -6,7 +6,7 @@ import { Entete } from '../../components/ui'
 import { fromMillimes, toInputDateTime, toMillimes } from '../../utils/format'
 import { REGIMES } from '../../utils/categories'
 
-const VIDE = { titre: '', description: '', categorie: 'PLATS', prixInitial: '', prixReduit: '', quantiteDisponible: 1, heureDebutRecuperation: '', heureFinRecuperation: '', regimes: [], recurrente: false }
+const VIDE = { titre: '', description: '', categorie: 'PLATS', prixInitial: '', prixReduit: '', quantiteDisponible: 1, heureDebutRecuperation: '', heureFinRecuperation: '', regimes: [], recurrente: false, photoUrl: '' }
 
 // Création et modification d'une offre (règles du cahier des charges : prix réduit < prix initial, stock >= 0, fin > début).
 export default function OfferForm() {
@@ -33,7 +33,9 @@ export default function OfferForm() {
     if (!(prixReduit > 0) || prixReduit >= prixInitial) return setErreur('Le prix réduit doit être positif et inférieur au prix initial.')
     if (!Number.isInteger(quantiteDisponible) || quantiteDisponible < 0) return setErreur('La quantité doit être un entier positif ou nul.')
     if (new Date(f.heureFinRecuperation) <= new Date(f.heureDebutRecuperation)) return setErreur("L'heure de fin doit suivre l'heure de début.")
-    const data = { titre: f.titre.trim(), description: f.description, categorie: f.categorie, prixInitial, prixReduit, quantiteDisponible, heureDebutRecuperation: new Date(f.heureDebutRecuperation).toISOString(), heureFinRecuperation: new Date(f.heureFinRecuperation).toISOString(), regimes: f.regimes || [], recurrente: Boolean(f.recurrente) }
+    const photoUrl = (f.photoUrl || '').trim()
+    if (photoUrl && !/^https:\/\/\S+$/i.test(photoUrl)) return setErreur('La photo doit être une adresse https://.')
+    const data = { titre: f.titre.trim(), description: f.description, categorie: f.categorie, prixInitial, prixReduit, quantiteDisponible, heureDebutRecuperation: new Date(f.heureDebutRecuperation).toISOString(), heureFinRecuperation: new Date(f.heureFinRecuperation).toISOString(), regimes: f.regimes || [], recurrente: Boolean(f.recurrente), photoUrl }
     setErreur(''); setEnvoi(true)
     try {
       await (id ? api.updateOffer(id, data) : api.createOffer(data))
@@ -55,6 +57,14 @@ export default function OfferForm() {
         <div className="cs-field"><label htmlFor="pr">Prix réduit (DT)</label><input id="pr" inputMode="decimal" required value={f.prixReduit} onChange={set('prixReduit')} /></div>
         <div className="cs-field"><label htmlFor="d">Début du retrait</label><input id="d" type="datetime-local" required value={f.heureDebutRecuperation} onChange={set('heureDebutRecuperation')} /></div>
         <div className="cs-field"><label htmlFor="e">Fin du retrait</label><input id="e" type="datetime-local" required value={f.heureFinRecuperation} onChange={set('heureFinRecuperation')} /></div>
+        <div className="cs-field full">
+          <label htmlFor="photo">Photo du produit (lien https, facultatif)</label>
+          <input id="photo" type="url" inputMode="url" placeholder="https://…" value={f.photoUrl || ''} onChange={set('photoUrl')} aria-describedby="photo-aide" />
+          <small id="photo-aide" className="cs-sub">Collez le lien d'une photo en ligne. Sans photo, l'offre affiche l'icône de sa catégorie.</small>
+          {/^https:\/\/\S+$/i.test((f.photoUrl || '').trim()) && (
+            <img src={f.photoUrl.trim()} alt="Aperçu de la photo" style={{ marginTop: 8, width: 160, height: 120, objectFit: 'cover', borderRadius: 12 }} onError={(e) => { e.currentTarget.style.display = 'none' }} onLoad={(e) => { e.currentTarget.style.display = '' }} />
+          )}
+        </div>
         <fieldset className="cs-field full cs-cases">
           <legend>Préférences alimentaires (les étudiants peuvent filtrer)</legend>
           {Object.entries(REGIMES).map(([code, l]) => (
