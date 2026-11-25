@@ -94,7 +94,10 @@ class ApiMock implements CampusApi {
   @override
   Future<Utilisateur> connexion(String email, String motDePasse) async {
     if (!email.contains('@')) _erreur('IDENTIFIANTS', 'Adresse e-mail invalide.');
-    _moi = Utilisateur(id: _moi.id, email: email.trim().toLowerCase(), role: 'student', prenom: _moi.prenom, nom: _moi.nom, favoris: _moi.favoris, preferences: _moi.preferences, ecoPoints: _moi.ecoPoints);
+    final mail = email.trim().toLowerCase();
+    // Démo : layal@ / cheznous@ = commerçant, admin@ = administrateur, le reste = étudiant
+    final role = mail.startsWith('admin') ? 'admin' : (mail.startsWith('layal') || mail.startsWith('cheznous')) ? 'merchant' : 'student';
+    _moi = Utilisateur(id: _moi.id, email: mail, role: role, prenom: _moi.prenom, nom: _moi.nom, favoris: _moi.favoris, preferences: _moi.preferences, ecoPoints: _moi.ecoPoints);
     _connecte = true;
     return _attendre(_moi);
   }
