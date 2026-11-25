@@ -77,17 +77,31 @@ npm run dev                   # http://localhost:5173
 ### 3. Application Mobile
 ```bash
 cd mobile
-flutter create . --project-name campussave --org tn.essect --platforms android,ios
 flutter pub get
-flutterfire configure         # génère firebase_options.dart (non versionné)
-flutter run
+flutter run -d chrome                     # mode démo : données fictives, sans serveur
 ```
+Avec le vrai backend (lancé avec `npm run dev`) et la vraie base Firebase :
+```bash
+flutter run -d chrome --web-port 5174 \
+  --dart-define=USE_MOCK=false \
+  --dart-define=API_URL=http://localhost:4000/api \
+  --dart-define=FIREBASE_API_KEY=<clé Web Firebase, = VITE_FIREBASE_API_KEY> \
+  --dart-define=WEB_URL=http://localhost:5173
+```
+Ajouter l'origine de l'app dans `backend/.env` : `CORS_ORIGINS=http://localhost:5173,http://localhost:5174`.
+Sur l'émulateur Android, remplacer `localhost` par `10.0.2.2` dans `API_URL`. Plus de détails : `mobile/README.md`.
+
+L'application mobile couvre les trois rôles avec le même backend et les mêmes données que le site :
+- **Étudiant** : offres (liste et carte), favoris, panier, paiement en ligne, commandes, QR code de retrait, notifications ;
+- **Commerçant** : validation d'un retrait par le code de la commande, commandes reçues (« Prête »), offres (publier, modifier, retirer), tableau de bord ;
+- **Administrateur** : validation des commerces, tableau de bord.
+La gestion complète (statistiques détaillées, utilisateurs, modération, signalements) se fait sur le site web.
 
 ## Configuration Firebase
 Aucune clé secrète n'est versionnée. Fichiers à créer localement :
 - `backend/.env` et `backend/serviceAccountKey.json`
 - `web/.env.local`
-- `mobile/lib/firebase_options.dart`, `google-services.json` (Android), `GoogleService-Info.plist` (iOS)
+- l'application mobile n'a besoin d'aucun fichier secret : la clé Web Firebase (publique) est passée au lancement avec `--dart-define`
 
 ## Données de démonstration
 Pour remplir Firestore avec des commerces et des offres réalistes autour de l'ESSECT :
@@ -188,7 +202,7 @@ Les erreurs ont la forme `{ "code": "...", "message": "..." }` ; les prix sont e
 - [x] Notifications push (commande prête, commande remise)
 - [x] Tableaux de bord étudiant, commerçant et admin (repas et kilos sauvés, chiffre d'affaires)
 - [x] Bonus : EcoPoints, Impact Dashboard (repas et kg de nourriture sauvés), Campus Radar (carte des commerces)
-- [ ] Application mobile Flutter (en cours)
+- [x] Application mobile Flutter (étudiant, commerçant, administrateur) partageant le backend et les données du site
 
 ## Documentation
 - Cahier des charges : `docs/cahier-des-charges/`
