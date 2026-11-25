@@ -1,51 +1,69 @@
-// CampusSave mobile (Flutter) : l'application des étudiants.
-// Offres en liste et sur la carte, favoris, panier, paiement Konnect, QR code de retrait,
-// délégation à un ami, avis, notifications, impact écologique.
-import 'package:material_ui/material_ui.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screens/login_screen.dart';
 
-import 'screens/accueil.dart';
-import 'screens/demarrage.dart';
-import 'services/session.dart';
-import 'theme.dart';
-
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  final session = Session();
-  await session.demarrer();
-  runApp(ChangeNotifierProvider.value(value: session, child: CampusSaveApp(onboardingVu: prefs.getBool('campussave.onboarding') ?? false)));
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const CampusSaveApp());
 }
 
-class CampusSaveApp extends StatefulWidget {
-  const CampusSaveApp({super.key, required this.onboardingVu});
-  final bool onboardingVu;
-  @override
-  State<CampusSaveApp> createState() => _CampusSaveAppState();
-}
-
-class _CampusSaveAppState extends State<CampusSaveApp> {
-  late bool _onboardingVu = widget.onboardingVu;
+class CampusSaveApp extends StatelessWidget {
+  const CampusSaveApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final s = context.watch<Session>();
-    final Widget ecran;
-    if (!_onboardingVu) {
-      ecran = Onboarding(onFini: () => setState(() => _onboardingVu = true));
-    } else if (s.utilisateur == null) {
-      ecran = const Connexion();
-    } else {
-      ecran = const Accueil();
-    }
+    // Le fameux Vert de la maquette
+    const Color primaryGreen = Color(0xFF0F7635);
+
     return MaterialApp(
       title: 'CampusSave',
       debugShowCheckedModeBanner: false,
-      theme: themeClair(),
-      darkTheme: themeSombre(),
-      themeMode: s.theme,
-      home: ecran,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primaryGreen,
+          primary: primaryGreen,
+        ),
+        scaffoldBackgroundColor:
+            const Color(0xFFF5F7FA), // Fond gris très clair
+
+        // Style global des champs de texte (TexteField)
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none, // Pas de bordure noire moche
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: primaryGreen, width: 2),
+          ),
+        ),
+
+        // Style global des boutons
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryGreen,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16), // Bords très arrondis
+            ),
+            elevation: 0,
+          ),
+        ),
+      ),
+      home: const LoginScreen(),
     );
   }
 }
