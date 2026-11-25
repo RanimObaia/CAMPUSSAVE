@@ -70,6 +70,10 @@ class ApiHttp implements CampusApi {
     return data;
   }
 
+  // Appel REST ouvert aux espaces commerçant et administrateur (services/api_pro.dart)
+  Future<dynamic> requete(String methode, String chemin, {Map<String, dynamic>? corps, Map<String, String>? params}) =>
+      _req(methode, chemin, corps: corps, params: params);
+
   Map<String, dynamic> _m(dynamic v) => Map<String, dynamic>.from(v as Map);
   List<Map<String, dynamic>> _l(dynamic v) => (v as List).map(_m).toList();
 
@@ -78,10 +82,7 @@ class ApiHttp implements CampusApi {
   Future<Utilisateur> connexion(String email, String motDePasse) async {
     await _seConnecterFirebase(email.trim(), motDePasse);
     final u = Utilisateur.fromJson(_m(await _req('GET', '/users/me')));
-    if (u.role != 'student') {
-      await deconnexion();
-      throw ApiException("L'application mobile est réservée aux étudiants. Commerçants et administrateurs : utilisez le site web.");
-    }
+    // Étudiant, commerçant et administrateur se connectent ici ; l'écran d'accueil dépend du rôle (voir main.dart).
     return u;
   }
 
