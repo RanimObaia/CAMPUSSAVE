@@ -96,7 +96,7 @@
 .et-liste-infos div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 12px 0; }
 .et-liste-infos div + div { border-top: 1px solid var(--trait); }
 .et-liste-infos dt { color: var(--gris); font-weight: 600; }
-.et-liste-infos dd { margin: 0; }
+.et-liste-infos dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 
 /* Quantité − 1 + */
 .et-qte { display: inline-flex; align-items: center; border: 1.5px solid var(--trait); border-radius: 999px; background: var(--papier); }
