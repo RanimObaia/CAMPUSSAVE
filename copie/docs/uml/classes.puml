@@ -1,0 +1,222 @@
+@startuml
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #F5FAF2
+  BorderColor #2E7D32
+}
+hide empty members
+
+abstract class Utilisateur {
+  - idUtilisateur : String
+  - nom : String
+  - prenom : String
+  - email : String
+  - telephone : String
+  - role : Role
+  - dateInscription : Date
+  - actif : boolean
+  - fcmToken : String
+  + sInscrire() : void
+  + seConnecter() : boolean
+  + seDeconnecter() : void
+  + modifierProfil() : void
+}
+
+class Etudiant {
+  - numeroEtudiant : String
+  - etablissement : String
+  - ecoPoints : int
+  + consulterOffres() : List<Offre>
+  + rechercherOffres(critere) : List<Offre>
+  + passerCommande() : Commande
+  + consulterHistorique() : List<Commande>
+}
+
+class Commercant {
+  - statutValidation : StatutValidation
+  + publierOffre(o : Offre) : void
+  + traiterCommande(c : Commande) : void
+  + validerQRCode(code : String) : boolean
+}
+
+class Administrateur {
+  + validerCommercant(c : Commercant) : void
+  + refuserCommercant(c : Commercant) : void
+  + gererUtilisateur(u : Utilisateur) : void
+  + consulterStatistiques() : Statistiques
+}
+
+class Commerce {
+  - idCommerce : String
+  - nom : String
+  - type : TypeCommerce
+  - adresse : String
+  - latitude : double
+  - longitude : double
+  - description : String
+  - horairesOuverture : String
+  - statutValidation : StatutValidation
+  + modifierInfos() : void
+}
+
+class Offre {
+  - idOffre : String
+  - titre : String
+  - description : String
+  - categorie : Categorie
+  - prixInitial : int <<millimes>>
+  - prixReduit : int <<millimes>>
+  - quantiteDisponible : int
+  - photoUrl : String
+  - heureDebutRecuperation : DateTime
+  - heureFinRecuperation : DateTime
+  - statut : StatutOffre
+  + modifier() : void
+  + supprimer() : void
+  + estDisponible() : boolean
+  + decrementerStock(qte : int) : void
+  + retirer() : void
+}
+
+class Panier {
+  - idPanier : String
+  - dateCreation : Date
+  + ajouterOffre(o : Offre, qte : int) : void
+  + modifierQuantite(o : Offre, qte : int) : void
+  + retirerOffre(o : Offre) : void
+  + calculerTotal() : int
+  + vider() : void
+}
+
+class LignePanier {
+  - quantite : int
+  + incrementer() : void
+  + decrementer() : void
+  + sousTotal() : int
+}
+
+class Commande {
+  - idCommande : String
+  - code : String <<CS-XXXXXX>>
+  - emailEtudiant : String
+  - dateCommande : DateTime
+  - statut : StatutCommande
+  - montantTotal : int <<millimes>>
+  + confirmer() : void
+  + annuler() : void
+  + marquerPrete() : void
+  + marquerRecuperee() : void
+}
+
+class LigneCommande {
+  - quantite : int
+  - prixUnitaire : int <<millimes>>
+  + sousTotal() : int
+}
+
+class Paiement {
+  - montant : int <<millimes>>
+  - methode : String
+  - statut : StatutPaiement
+  - reference : String <<Konnect>>
+  - payUrl : String
+  - datePaiement : DateTime
+  + initierPaiement() : String
+  + verifierStatut() : StatutPaiement
+}
+
+class QRCode {
+  - code : String
+  - dateGeneration : DateTime
+  - estUtilise : boolean
+  - dateValidation : DateTime
+  + generer() : void
+  + valider() : boolean
+}
+
+class Notification <<push FCM>> {
+  - titre : String
+  - message : String
+  - dateEnvoi : DateTime
+  + envoyer() : void
+}
+
+class Statistiques {
+  - commandes : int
+  - repasSauves : int
+  - kgSauves : double
+  - montant : int <<millimes>>
+}
+
+enum Role {
+  student
+  merchant
+  admin
+}
+enum TypeCommerce {
+  RESTAURANT
+  CAFETERIA
+  BOULANGERIE
+  PATISSERIE
+}
+enum StatutValidation {
+  EN_ATTENTE
+  VALIDE
+  REFUSE
+}
+enum StatutOffre {
+  ACTIVE
+  EPUISEE
+  EXPIREE
+  RETIREE
+}
+enum StatutCommande {
+  EN_ATTENTE_PAIEMENT
+  PAYEE
+  PRETE
+  RECUPEREE
+  ANNULEE
+}
+enum StatutPaiement {
+  INITIE
+  REUSSI
+  ECHOUE
+}
+enum Categorie {
+  BOULANGERIE
+  PLATS
+  PATISSERIE
+  BOISSONS
+}
+
+Utilisateur <|-- Etudiant
+Utilisateur <|-- Commercant
+Utilisateur <|-- Administrateur
+
+Commercant "1" -- "1" Commerce : possède >
+Commerce "1" *-- "0..*" Offre : propose >
+Administrateur "1" ..> "0..*" Commerce : valide >
+
+Etudiant "1" -- "0..1" Panier : possède >
+Panier "1" *-- "0..*" LignePanier
+LignePanier "0..*" --> "1" Offre : concerne >
+
+Etudiant "1" -- "0..*" Commande : passe >
+Commerce "1" -- "0..*" Commande : reçoit >
+Commande "1" *-- "1..*" LigneCommande
+LigneCommande "0..*" --> "1" Offre : concerne >
+Commande "1" -- "0..1" Paiement : réglée par >
+Commande "1" -- "0..1" QRCode : génère >
+
+Utilisateur "1" -- "0..*" Notification : reçoit >
+
+Utilisateur ..> Role
+Commerce ..> TypeCommerce
+Commerce ..> StatutValidation
+Offre ..> StatutOffre
+Offre ..> Categorie
+Commande ..> StatutCommande
+Paiement ..> StatutPaiement
+Administrateur ..> Statistiques : consulte >
+@enduml
