@@ -1,5 +1,6 @@
 const { Router } = require("express");
 
+const { limiteSensible } = require("../middleware/limiteur");
 const router = Router();
 
 router.get("/health", (req, res) => {
@@ -10,7 +11,7 @@ router.get("/health", (req, res) => {
   });
 });
 
-router.use("/auth", require("./auth.routes"));
+router.use("/auth", limiteSensible, require("./auth.routes"));
 router.use("/users", require("./users.routes"));
 router.use("/shops", require("./shops.routes"));
 router.use("/admin", require("./admin.routes"));
@@ -22,6 +23,7 @@ router.use("/payments", require("./payments.routes"));
 router.use("/stats", require("./stats.routes"));
 router.use("/notifications", require("./notifications.routes"));
 router.use("/reports", require("./reports.routes"));
-router.use("/contact", require("./contact.routes"));
+router.use("/contact", limiteSensible, require("./contact.routes"));
 
 module.exports = router;
+

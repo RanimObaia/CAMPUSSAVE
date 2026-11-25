@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { api } from '../services/api'
 import { ROLES } from '../config/constants'
 import EcranAuth from '../components/EcranAuth'
+import { evaluer, estFort, niveau, MESSAGE_FAIBLE } from '../utils/motDePasse'
 
 const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/offres' }
 
@@ -26,7 +27,7 @@ function verifier(f) {
   if (!f.prenom.trim() || !f.nom.trim()) return 'Le nom et le prénom sont obligatoires.'
   if (!/^\S+@\S+\.\S+$/.test(f.email.trim())) return 'Adresse e-mail invalide.'
   if (!/^\d{8}$/.test(f.telephone.trim())) return 'Le téléphone doit contenir 8 chiffres.'
-  if (f.motDePasse.length < 6) return 'Le mot de passe doit contenir au moins 6 caractères.'
+  if (!estFort(f.motDePasse)) return MESSAGE_FAIBLE
   if (f.motDePasse !== f.confirmation) return 'Les deux mots de passe ne sont pas identiques.'
   return ''
 }
@@ -122,7 +123,22 @@ export default function Inscription() {
           <div className="cs-field"><label htmlFor="pw2">Confirmation</label>
             <input id="pw2" type="password" autoComplete="new-password" value={form.confirmation} onChange={changer('confirmation')} /></div>
         </div>
-        <p id="pw-aide" className="cs-sub auth-aide">6 caractères minimum.</p>
+        <div id="pw-aide" className="mdp-regles" aria-live="polite">
+          <div className={`mdp-barre mdp-niv-${niveau(form.motDePasse).n}`} aria-hidden="true">
+            {[1, 2, 3, 4, 5].map((i) => <span key={i} className={i <= niveau(form.motDePasse).n ? 'on' : ''} />)}
+          </div>
+          <p className="cs-sub mdp-force">
+            Force : <strong>{form.motDePasse ? niveau(form.motDePasse).libelle : '—'}</strong>
+          </p>
+          <ul>
+            {evaluer(form.motDePasse).map((r) => (
+              <li key={r.id} className={r.ok ? 'ok' : ''}>
+                <span aria-hidden="true">{r.ok ? '✓' : '○'}</span> {r.texte}
+                <span className="sr-only">{r.ok ? ' (respecté)' : ' (manquant)'}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
         <button className="cs-btn primary" disabled={envoi}>{envoi ? 'Création du compte…' : "S'inscrire"}</button>
         <p className="cs-sub">Déjà inscrit ? <Link to="/login">Se connecter</Link></p>

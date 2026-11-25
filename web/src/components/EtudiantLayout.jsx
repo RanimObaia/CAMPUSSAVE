@@ -58,7 +58,7 @@ function Contenu() {
                 <span>{t('nav.panier')}</span>
                 {nbArticles > 0 && <span className="et-badge" aria-label={`${nbArticles} article(s)`}>{nbArticles}</span>}
               </NavLink>
-              <NavLink to="/parametres" className="et-prenom" title={t('nav.parametres')}>{user?.prenom}</NavLink>
+              <NavLink to="/parametres" className="et-prenom" title={t('nav.parametres')} aria-label={t('nav.parametres')} data-initiale={(user?.prenom || '?').slice(0, 1).toUpperCase()}>{user?.prenom}</NavLink>
             </>
           )}
           {user && !etudiant && <Link to={ESPACE[user.role] || '/'} className="cs-btn primary">{t('nav.monEspace')}</Link>}

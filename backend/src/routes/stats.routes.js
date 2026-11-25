@@ -11,5 +11,6 @@ router.get('/merchant/detail', requireAuth, requireRole(ROLES.MERCHANT), c.comme
 router.get('/student', requireAuth, requireRole(ROLES.STUDENT), c.etudiant);
 router.get('/merchant', requireAuth, requireRole(ROLES.MERCHANT), c.commercant);
 router.get('/admin', requireAuth, requireRole(ROLES.ADMIN), c.admin);
+router.get('/admin/detail', requireAuth, requireRole(ROLES.ADMIN), c.adminDetail);
 
 module.exports = router;

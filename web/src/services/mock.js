@@ -7,6 +7,30 @@ const STATUTS_PAYES = ['PAYEE', 'PRETE', 'RECUPEREE']
 // Jour (AAAA-MM-JJ) à l'heure de Tunis
 const jourTunis = (d) => new Date(d).toLocaleDateString('fr-CA', { timeZone: 'Africa/Tunis' })
 
+// Historique fictif des 13 jours passés, utilisé seulement par le tableau de bord de l'administrateur :
+// le mode démo n'a que 3 commandes, trop peu pour lire des graphiques. Les commerces, offres et articles ne changent pas.
+const HISTO = (() => {
+  const commerces = [['s1', 3800], ['s4', 4600], ['s5', 4100], ['s6', 2700], ['s7', 2900], ['s8', 3400]] // [commerce, prix moyen en millimes]
+  const parJour = [7, 9, 8, 12, 10, 13, 11, 8, 14, 10, 15, 12, 13]
+  const liste = []
+  parJour.forEach((nb, i) => {
+    for (let k = 0; k < nb; k += 1) {
+      const [commerceId, prix] = commerces[(i * 5 + k * 3 + (k % 2)) % commerces.length]
+      const quantite = (i + k) % 3 === 0 ? 2 : 1
+      const r = (i * 7 + k * 11) % 20
+      const statut = r === 0 ? 'ANNULEE' : r === 1 ? 'PAYEE' : 'RECUPEREE'
+      const date = Date.now() - (13 - i) * 864e5 - k * 20 * 60e3
+      liste.push({
+        id: `h${liste.length}`, code: `CS-${1900 + liste.length}`, commerceId, statut,
+        lignes: [{ titre: 'Panier du jour', quantite, prixUnitaire: prix, prixInitial: Math.round(prix * 2.3) }],
+        montantTotal: prix * quantite, dateCommande: new Date(date).toISOString(), heureFinRecuperation: new Date(date + 3 * 3600e3).toISOString(),
+        paiement: { statut: statut === 'ANNULEE' ? 'ECHOUE' : 'REUSSI' },
+      })
+    }
+  })
+  return liste
+})()
+
 // Les commerces sont ceux du script de démonstration du backend (scripts/seed.js) :
 // de vrais commerces autour de l'ESSECT, avec leurs vraies adresses.
 const P = (nom) => `/photos/${nom}.jpg`
@@ -398,6 +422,12 @@ export const mock = {
       u = { id: 'a1', nom: 'Admin', prenom: 'Démo', email, role: email.startsWith('admin') ? 'admin' : 'merchant', actif: true }
       db.users.push(u)
     }
+    // Comme le vrai serveur : un compte suspendu ne peut pas se connecter
+    if (u.actif === false) {
+      const e = new Error('Ce compte est suspendu.')
+      e.status = 403
+      throw e
+    }
     courant = u
     return wait(u)
   },
@@ -451,6 +481,66 @@ export const mock = {
     commandes: db.orders.filter((o) => STATUTS_PAYES.includes(o.statut)).length,
     paiements: db.orders.filter((o) => STATUTS_PAYES.includes(o.statut)).length,
   }),
+  // GET /stats/admin/detail : même forme que le backend (backend/src/services/statsAdmin.js), avec l'historique fictif en plus
+  adminStatsDetail: () => {
+    const maintenant = Date.now()
+    const commandes = [...HISTO, ...db.orders.map((o) => ({ ...o, commerceId: o.commerceId || 's1' }))]
+    const payees = commandes.filter((o) => STATUTS_PAYES.includes(o.statut))
+    const nomCommerce = new Map(db.shops.map((s) => [s.id, s.nom]))
+    const somme = (liste, f) => liste.reduce((t, x) => t + (f(x) || 0), 0)
+    const repas = (liste) => somme(liste, (o) => somme(o.lignes, (l) => l.quantite))
+    const repartition = (liste, cle, ordre = []) => {
+      const n = new Map(ordre.map((x) => [x, 0]))
+      liste.forEach((x) => n.set(cle(x), (n.get(cle(x)) || 0) + 1))
+      return [...n].filter(([, valeur]) => valeur > 0).map(([libelle, valeur]) => ({ libelle, valeur }))
+    }
+    const comptes = db.users.filter((u) => u.role !== 'admin')
+    const volume = somme(payees, (o) => o.montantTotal)
+    const offres = offresAvecCommerce()
+    const actives = offres.filter((o) => o.statut === 'ACTIVE' && o.quantiteDisponible > 0 && new Date(o.heureFinRecuperation).getTime() > maintenant)
+    const terminees = payees.filter((o) => o.heureFinRecuperation && new Date(o.heureFinRecuperation).getTime() < maintenant)
+    const parJour = Array.from({ length: 14 }, (_, i) => {
+      const jour = jourTunis(maintenant - (13 - i) * 864e5)
+      const duJour = payees.filter((o) => jourTunis(o.dateCommande) === jour)
+      return { jour, commandes: duJour.length, chiffreAffaires: somme(duJour, (o) => o.montantTotal) }
+    })
+    const enAttente = db.shops.filter((s) => s.statutValidation === 'EN_ATTENTE').length
+    const ouverts = signalements.filter((x) => x.statut === 'OUVERT').length
+    const paiementsRefuses = commandes.filter((o) => o.paiement?.statut === 'ECHOUE').length
+    return wait({
+      demo: true,
+      utilisateurs: {
+        total: comptes.length, etudiants: comptes.filter((u) => u.role === 'student').length, commercants: comptes.filter((u) => u.role === 'merchant').length,
+        suspendus: comptes.filter((u) => u.actif === false).length, nouveaux7j: comptes.filter((u) => u.dateInscription && maintenant - new Date(u.dateInscription).getTime() <= 7 * 864e5).length,
+      },
+      commerces: {
+        valides: db.shops.filter((s) => s.statutValidation === 'VALIDE').length, enAttente, refuses: db.shops.filter((s) => s.statutValidation === 'REFUSE').length,
+        parType: repartition(db.shops.filter((s) => s.statutValidation === 'VALIDE'), (s) => s.type),
+      },
+      offres: { actives: actives.length, total: offres.length, retirees: offres.filter((o) => o.statut === 'RETIREE').length, parCategorie: repartition(actives, (o) => o.categorie) },
+      commandes: {
+        payees: payees.length, total: commandes.length, parJour,
+        parStatut: repartition(commandes, (o) => o.statut, ['EN_ATTENTE_PAIEMENT', 'PAYEE', 'PRETE', 'RECUPEREE', 'ANNULEE']),
+      },
+      finance: {
+        volume, panierMoyen: payees.length ? Math.round(volume / payees.length) : 0, paiementsRefuses,
+        economiesEtudiants: somme(payees, (o) => somme(o.lignes, (l) => ((l.prixInitial || l.prixUnitaire) - l.prixUnitaire) * l.quantite)),
+      },
+      impact: { repasSauves: repas(payees), kgSauves: Math.round(repas(payees) * 4) / 10, co2Evite: Math.round(repas(payees) * 25) / 10 },
+      tauxRetrait: terminees.length ? Math.round((terminees.filter((o) => o.statut === 'RECUPEREE').length / terminees.length) * 100) : null,
+      signalements: {
+        ouverts, traites: signalements.filter((x) => x.statut === 'TRAITE').length, rejetes: signalements.filter((x) => x.statut === 'REJETE').length,
+        parMotif: repartition(signalements, (x) => x.motif),
+      },
+      topCommerces: [...new Set(payees.map((o) => o.commerceId))].map((id) => {
+        const siennes = payees.filter((o) => o.commerceId === id)
+        return { id, nom: nomCommerce.get(id) || 'Commerce', commandes: siennes.length, chiffreAffaires: somme(siennes, (o) => o.montantTotal), repas: repas(siennes) }
+      }).sort((a, b) => b.chiffreAffaires - a.chiffreAffaires).slice(0, 5),
+      dernieresCommandes: [...commandes].sort((a, b) => b.dateCommande.localeCompare(a.dateCommande)).slice(0, 6)
+        .map((o) => ({ id: o.id, code: o.code, commerce: nomCommerce.get(o.commerceId) || 'Commerce', montantTotal: o.montantTotal, statut: o.statut, dateCommande: o.dateCommande })),
+      aTraiter: { commercesEnAttente: enAttente, signalementsOuverts: ouverts, paiementsRefuses },
+    })
+  },
   adminShops: (statut) => wait(db.shops.filter((s) => !statut || s.statutValidation === statut)),
   validateShop: (id, decision) => { db.shops = db.shops.map((s) => (s.id === id ? { ...s, statutValidation: decision } : s)); return wait({}) },
   adminUsers: () => wait(db.users),

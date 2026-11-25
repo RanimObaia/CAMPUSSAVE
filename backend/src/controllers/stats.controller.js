@@ -2,6 +2,7 @@ const { db } = require('../config/firebase');
 const { ROLES, STATUT_VALIDATION, STATUT_OFFRE, STATUT_COMMANDE, KG_PAR_REPAS, CO2_PAR_REPAS } = require('../config/constants');
 const { docToJson } = require('../utils/http');
 const { commerceDuCommercant } = require('./shops.controller');
+const { calculerStatsAdmin } = require('../services/statsAdmin');
 
 // Une commande compte comme payée dès qu'elle est PAYEE, PRETE ou RECUPEREE.
 const STATUTS_PAYES = [STATUT_COMMANDE.PAYEE, STATUT_COMMANDE.PRETE, STATUT_COMMANDE.RECUPEREE];
@@ -179,4 +180,14 @@ async function commercantDetail(req, res) {
   });
 }
 
-module.exports = { etudiant, commercant, admin, publiques, commercantDetail, niveau };
+// GET /api/stats/admin/detail : tableau de bord complet de l'administrateur
+// (répartitions pour les camemberts, 14 jours, meilleurs commerces, dernières commandes, éléments à traiter)
+async function adminDetail(req, res) {
+  const lire = async (nom) => (await db.collection(nom).get()).docs.map(docToJson);
+  const [utilisateurs, commerces, commandes, offres, signalements] = await Promise.all(
+    ['users', 'shops', 'orders', 'offers', 'reports'].map(lire),
+  );
+  res.json(calculerStatsAdmin({ utilisateurs, commerces, commandes, offres, signalements }));
+}
+
+module.exports = { etudiant, commercant, admin, adminDetail, publiques, commercantDetail, niveau };

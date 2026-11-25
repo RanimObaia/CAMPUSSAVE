@@ -182,3 +182,92 @@
 .cs-scan { max-width: 520px; display: flex; flex-direction: column; gap: 16px; }
 .cs-scan input { font-family: var(--titre); font-size: 28px; letter-spacing: .08em; text-transform: uppercase; min-height: 64px; text-align: center; }
 .cs-scan .cs-btn.primary { min-height: 50px; }
+
+
+/* ---------- Tableau de bord administrateur ---------- */
+.admin-demo { margin: 4px 0 14px; font-size: 13px; }
+.admin-kpi { margin-top: 18px; }
+.admin-grille { display: grid; gap: 16px; margin-top: 18px; }
+.admin-camemberts { grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+.admin-2col { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+.admin-grille h2, .admin-atraiter h2 { margin: 0 0 2px; font-size: 19px; }
+
+/* À traiter */
+.admin-atraiter { margin: 4px 0 6px; }
+.admin-atraiter ul { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.admin-alerte { display: inline-flex; gap: 6px; align-items: center; padding: 9px 14px; border-radius: 999px; background: var(--harissa-pale); color: var(--harissa); font-weight: 600; text-decoration: none; }
+.admin-alerte b { font-family: var(--titre); font-size: 18px; }
+.admin-alerte:hover { text-decoration: underline; }
+
+/* Camemberts */
+.camembert-corps { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
+.camembert svg { width: 156px; height: 156px; flex: none; }
+.camembert-total { font: 700 8px var(--titre); fill: var(--encre); }
+.camembert-unite { font: 2.8px sans-serif; fill: var(--gris); }
+.camembert-vide { margin-top: 18px; }
+.camembert-legende { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; flex: 1; min-width: 160px; }
+.camembert-legende li { display: grid; grid-template-columns: 12px 1fr auto 42px; gap: 8px; align-items: center; font-size: 14px; }
+.camembert-legende i { width: 12px; height: 12px; border-radius: 50%; }
+.camembert-legende em { font-style: normal; color: var(--gris); text-align: right; font-size: 13px; }
+
+/* Courbe */
+.courbe svg { width: 100%; height: auto; margin-top: 8px; }
+.courbe-base { stroke: var(--trait); stroke-width: 1; }
+.courbe-pointille { stroke-dasharray: 4 4; }
+.courbe-aire { fill: var(--vert); opacity: .14; }
+.courbe-ligne { fill: none; stroke: var(--vert); stroke-width: 2.5; stroke-linejoin: round; }
+.courbe-point { fill: var(--papier); stroke: var(--vert); stroke-width: 2; }
+.courbe-axe { font-size: 11px; fill: var(--gris); }
+
+/* Meilleurs commerces et dernières commandes */
+.admin-top, .admin-recent { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.admin-top li { display: grid; grid-template-columns: minmax(130px, 1.3fr) 1fr auto; gap: 12px; align-items: center; }
+.admin-top-nom { display: flex; flex-direction: column; font-weight: 600; }
+.admin-top small, .admin-recent small { color: var(--gris); font-weight: 400; font-size: 12.5px; }
+.admin-top-barre { height: 10px; border-radius: 999px; background: var(--sable); overflow: hidden; }
+.admin-top-barre i { display: block; height: 100%; border-radius: 999px; background: var(--vert); }
+.admin-top b { font-family: var(--titre); white-space: nowrap; }
+.admin-recent li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--trait); }
+.admin-recent li:last-child { border-bottom: 0; padding-bottom: 0; }
+.admin-recent li span { display: flex; flex-direction: column; }
+.admin-recent b { font-family: var(--titre); white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .admin-camemberts, .admin-2col { grid-template-columns: 1fr; }
+  .admin-top li { grid-template-columns: 1fr auto; }
+  .admin-top-barre { grid-column: 1 / -1; order: 3; }
+}
+
+/* ---------- Scanner de QR code (commerçant) ---------- */
+.scan-page { display: grid; gap: 16px; max-width: 560px; }
+.scan-lecteur { display: flex; flex-direction: column; gap: 12px; }
+.scan-video { position: relative; aspect-ratio: 4 / 3; background: #0b120e; border-radius: 16px; overflow: hidden; }
+.scan-video video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.scan-cadre { position: absolute; inset: 15%; border: 3px solid rgba(255, 255, 255, .9); border-radius: 20px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .35); pointer-events: none; }
+.scan-etat { position: absolute; inset: 0; margin: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: #dfe7e1; font-size: 15px; }
+.scan-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.scan-photo { cursor: pointer; }
+.scan-resultat { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.scan-resultat:empty { display: none; }
+.scan-resultat .cs-btn { align-self: flex-start; min-height: 48px; }
+@media (max-width: 720px) {
+  .scan-page { max-width: none; }
+  .scan-video { aspect-ratio: 3 / 4; }
+  .scan-actions .cs-btn { flex: 1; min-height: 48px; justify-content: center; text-align: center; }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Mot de passe fort (inscription)                                     */
+/* ------------------------------------------------------------------ */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.mdp-regles { margin-top: -6px; display: grid; gap: 6px; }
+.mdp-barre { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.mdp-barre span { height: 6px; border-radius: 3px; background: var(--sable, #e4dccb); transition: background .2s; }
+.mdp-barre.mdp-niv-1 span.on, .mdp-barre.mdp-niv-2 span.on { background: #c0392b; }
+.mdp-barre.mdp-niv-3 span.on, .mdp-barre.mdp-niv-4 span.on { background: #e0a100; }
+.mdp-barre.mdp-niv-5 span.on { background: var(--vert, #1c6a4b); }
+.mdp-force { margin: 0; font-size: 13px; }
+.mdp-regles ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-size: 13px; color: var(--gris, #5b6a60); }
+.mdp-regles li.ok { color: var(--vert, #1c6a4b); font-weight: 600; }
+@media (max-width: 560px) { .mdp-regles ul { grid-template-columns: 1fr; } }
