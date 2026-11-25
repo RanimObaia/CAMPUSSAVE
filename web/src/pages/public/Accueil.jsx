@@ -1,14 +1,15 @@
 // Page d'accueil publique (avant connexion) : promesse, compteurs d'impact,
 // « comment ça marche » en 4 étapes, offres du moment, commerçants, application, FAQ.
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../services/api'
 import { useChargement, useTitre } from '../../hooks'
 import { usePreferences } from '../../context/PreferencesContext'
-import { useInstallation } from '../../components/useInstallation'
 import { FAQ } from '../../contenu/faq'
 import { dt } from '../../utils/format'
 import { heure, reduction } from '../../utils/categories'
 import Cloche from '../../components/Cloche'
+import { useInstallation } from '../../components/useInstallation'
+import { ouvrirApplication } from '../../components/ouvrirApplication'
 import Icone from '../../components/Icone'
 import { Revele, Parallaxe, Compteur } from '../../components/Anime'
 
@@ -17,11 +18,12 @@ const nb = (n) => new Intl.NumberFormat('fr').format(n)
 
 
 export default function Accueil() {
+  const navigate = useNavigate()
+  const { possible, installer } = useInstallation()
   const { t, langue } = usePreferences()
   useTitre(null, 'CampusSave : les invendus du jour des commerces autour de l\'ESSECT à moitié prix. Réserve, paie en ligne, récupère avec ton QR code.')
   const stats = useChargement(() => api.statsPubliques())
   const offres = useChargement(() => api.listOffers({ tri: 'remise' }))
-  const { possible, installer } = useInstallation()
   const s = stats.data
   const etapes = [
     { n: 1, t: t('pub.e1t'), d: t('pub.e1'), i: 'loupe' },
@@ -124,7 +126,7 @@ export default function Accueil() {
           <h2>{t('pub.appTitre')}</h2>
           <p>{t('pub.appTexte')}</p>
         </div>
-        {possible && <button type="button" className="cs-btn primary" onClick={installer}>{t('pub.installer')}</button>}
+        <a href="/application" className="cs-btn primary" onClick={(e) => { e.preventDefault(); ouvrirApplication({ installerSite: installer, possible, aller: navigate }) }}>{t('pub.installer')}</a>
       </section>
 
       <section className="acc-section">
