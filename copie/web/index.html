@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>CampusSave · Repas anti-gaspi près de l'ESSECT</title>
+    <meta name="description" content="CampusSave : les invendus des commerces autour de l'ESSECT, à prix réduit. Réserve, paie en ligne, récupère avec ton QR code." />
+    <meta name="theme-color" content="#133B2C" />
+
+    <!-- Icônes et application installable (PWA) -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="CampusSave" />
+
+    <!-- Partage sur les réseaux sociaux (Open Graph / Twitter) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CampusSave" />
+    <meta property="og:title" content="CampusSave · Le bon repas, au bon prix, avant qu'il ne soit jeté" />
+    <meta property="og:description" content="Les invendus du jour des commerces autour de l'ESSECT, à moitié prix ou moins. Réserve, paie en ligne, récupère avec ton QR code." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="fr_TN" />
+    <meta property="og:locale:alternate" content="ar_TN" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- Données structurées pour les moteurs de recherche -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "CampusSave",
+        "description": "Plateforme anti-gaspillage alimentaire autour de l'ESSECT (Tunis).",
+        "logo": "/icon-512.png",
+        "areaServed": { "@type": "City", "name": "Tunis" }
+      }
+    </script>
+  </head>
+  <body>
+    <noscript>CampusSave a besoin de JavaScript pour fonctionner.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

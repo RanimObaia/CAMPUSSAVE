@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /commandes
+Disallow: /panier
+Disallow: /paiement
+Disallow: /commercant
+Disallow: /admin
+Disallow: /retrait/
+Sitemap: https://campussave.tn/sitemap.xml

@@ -1,0 +1,194 @@
+/* ==========================================================================
+   Espace étudiant
+   ========================================================================== */
+
+/* ---------- Barre du haut ---------- */
+.et-header {
+  position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 28px;
+  padding: 14px clamp(16px, 4vw, 48px); background: rgba(243, 237, 225, .94);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--trait);
+}
+.et .et-accueil { color: var(--pin); text-decoration: none; }
+.et-nav { display: flex; gap: 4px; flex: 1; }
+.et .et-nav a { color: var(--encre); text-decoration: none; padding: 8px 14px; border-radius: 999px; font-weight: 550; white-space: nowrap; }
+.et-nav a:hover { background: var(--sable); }
+.et .et-nav a.active { background: var(--pin); color: #fff; }
+.et-user { display: flex; align-items: center; gap: 10px; }
+.et-panier-bouton {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 999px;
+  background: var(--vert); text-decoration: none; font-weight: 600;
+}
+.et .et-panier-bouton { color: #fff; }
+.et-panier-bouton:hover, .et-panier-bouton.active { background: var(--vert-fonce); }
+.et-badge {
+  min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--harissa); color: #fff;
+  font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+}
+.et-prenom { font-weight: 600; color: var(--gris); }
+.et-sortie { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--trait); background: transparent; color: var(--encre); display: grid; place-items: center; cursor: pointer; }
+.et-sortie:hover { background: var(--sable); }
+
+.et-main { max-width: 1180px; margin: 0 auto; padding: 36px clamp(16px, 4vw, 48px) 64px; display: flex; flex-direction: column; gap: 22px; }
+
+/* ---------- Accueil : salutation + recherche ---------- */
+.et-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px 40px; align-items: end; }
+.et-hero h1 { font-size: clamp(36px, 5vw, 60px); font-weight: 500; letter-spacing: -0.03em; line-height: 1.02; }
+.et-hero .cs-sub { font-size: 17px; max-width: 46ch; }
+.et-compte { text-align: right; font-family: var(--titre); }
+.et-compte b { display: block; font-size: 64px; line-height: 1; font-weight: 600; color: var(--vert); letter-spacing: -0.03em; }
+.et-compte span { color: var(--gris); font-style: italic; font-size: 16px; }
+
+.et-recherche { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; background: var(--papier); border: 1px solid var(--trait); border-radius: 999px; padding: 6px 6px 6px 18px; }
+.et-recherche .icone { color: var(--gris); }
+.et-input { flex: 1 1 260px; min-height: 46px; border: 0; background: transparent; color: var(--encre); font-size: 16px; padding: 0 6px; }
+.et-input:focus { outline: none; }
+.et-recherche:focus-within { border-color: var(--vert); box-shadow: 0 0 0 3px var(--vert-pale); }
+.et-select { flex: 0 0 auto; min-height: 44px; border: 0; border-radius: 999px; padding: 0 16px; background: var(--sable); color: var(--encre); font-weight: 600; cursor: pointer; }
+
+.et-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.et-chips button {
+  display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--trait); background: var(--papier);
+  color: var(--encre); border-radius: 999px; padding: 8px 16px 8px 12px; font-weight: 600; cursor: pointer;
+}
+.et-chips button:hover { border-color: var(--vert); }
+.et-chips button.actif { background: var(--pin); border-color: var(--pin); color: #fff; }
+.et-mt { margin-top: 12px; }
+.et-resultats { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--trait); padding-bottom: 10px; }
+.et-resultats h2 { font-size: 24px; }
+
+/* ---------- Offres en « tickets » ---------- */
+.et-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 16px; }
+.et .et-carte { color: inherit; }
+.et-carte {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center;
+  background: var(--papier); border: 1px solid var(--trait); border-radius: 22px; padding: 16px 20px 16px 16px;
+  text-decoration: none; color: inherit; transition: border-color .15s, transform .15s;
+}
+.et-carte:hover { border-color: var(--vert); transform: translateY(-1px); }
+/* Les encoches du ticket */
+.et-carte::before, .et-carte::after {
+  content: ''; position: absolute; left: 111px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--creme); border: 1px solid var(--trait);
+}
+.et-carte::before { top: -10px; }
+.et-carte::after { bottom: -10px; }
+.et-corps { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding-left: 14px; border-left: 1.5px dashed var(--trait); }
+.et-commerce { font-size: 13.5px; font-weight: 650; color: var(--vert); }
+.cs h2.et-titre, .cs h3.et-titre { font-size: 21px; line-height: 1.2; font-weight: 600; }
+.et-prix { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
+.et-prix b { font-family: var(--titre); font-size: 26px; font-weight: 600; color: var(--encre); letter-spacing: -0.02em; }
+.et-prix s { color: var(--gris); font-size: 14px; }
+.et-infos { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; font-size: 13.5px; color: var(--gris); }
+.et-infos span { display: inline-flex; align-items: center; gap: 5px; }
+.et-fin { color: var(--vert); font-weight: 600; }
+.et-fin.urgent { color: var(--harissa); }
+
+/* ---------- Détail d'une offre ---------- */
+.et-retour { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; text-decoration: none; align-self: flex-start; }
+.et-detail { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
+.et-detail .cloche-grande { justify-self: center; }
+.et-detail-texte { display: flex; flex-direction: column; gap: 14px; }
+.et-detail-texte h1 { font-size: clamp(34px, 4vw, 48px); font-weight: 500; letter-spacing: -0.025em; }
+.et-detail-texte > p { font-size: 17px; max-width: 52ch; }
+.et-prix-grand b { font-size: 44px; color: var(--vert); }
+.et-economie { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; background: var(--vert-pale); color: var(--vert-fonce); font-weight: 600; padding: 4px 12px; border-radius: 999px; }
+.et-liste-infos { margin: 6px 0 0; display: flex; flex-direction: column; background: var(--papier); border: 1px solid var(--trait); border-radius: 18px; padding: 4px 18px; }
+.et-liste-infos div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 12px 0; }
+.et-liste-infos div + div { border-top: 1px solid var(--trait); }
+.et-liste-infos dt { color: var(--gris); font-weight: 600; }
+.et-liste-infos dd { margin: 0; }
+
+/* Quantité − 1 + */
+.et-qte { display: inline-flex; align-items: center; border: 1.5px solid var(--trait); border-radius: 999px; background: var(--papier); }
+.et-qte button { width: 42px; height: 42px; border: 0; border-radius: 50%; background: transparent; font-size: 20px; font-weight: 600; color: var(--vert); cursor: pointer; }
+.et-qte button:hover:not(:disabled) { background: var(--vert-pale); }
+.et-qte button:disabled { color: #c4bba9; cursor: not-allowed; }
+.et-qte span { min-width: 30px; text-align: center; font-weight: 700; }
+.et-ajout { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.et-ajout .cs-btn.primary { min-height: 48px; padding: 0 24px; }
+
+/* ---------- Panier ---------- */
+.et-panier { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.et-lignes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.et-ligne { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; background: var(--papier); border: 1px solid var(--trait); border-radius: 20px; padding: 14px 18px; }
+.et-ligne-texte { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.et .et-ligne-titre { color: var(--encre); }
+.et-ligne-titre { font-family: var(--titre); font-size: 19px; font-weight: 600; color: var(--encre); text-decoration: none; }
+.et-ligne-total { min-width: 90px; text-align: right; font-family: var(--titre); font-size: 19px; }
+.et-retirer { width: 38px; height: 38px; border: 0; border-radius: 50%; background: transparent; color: var(--gris); cursor: pointer; font-size: 16px; }
+.et-retirer:hover { background: var(--harissa-pale); color: var(--harissa); }
+.et-resume { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 96px; }
+.et-resume-ligne { display: flex; justify-content: space-between; gap: 12px; }
+.et-eco { color: var(--vert); font-weight: 600; }
+.et-total { border-top: 1px solid var(--trait); padding-top: 14px; align-items: baseline; }
+.et-total b { font-family: var(--titre); font-size: 32px; font-weight: 600; letter-spacing: -0.02em; }
+.et-large { width: 100%; min-height: 50px; }
+.et-petit { font-size: 13px; text-align: center; }
+
+/* ---------- Commandes, QR code, retour de paiement ---------- */
+a.et-commande { text-decoration: none; color: inherit; }
+a.et-commande:hover { border-color: var(--vert); }
+a.et-a-retirer { border-left: 5px solid var(--vert); }
+a.et-a-retirer .cs-btn { pointer-events: none; }
+.et-detail-commande { display: flex; flex-direction: column; gap: 18px; }
+.et-detail-commande table { min-width: 0; }
+.et-qr { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; background: var(--pin); border-color: var(--pin); color: #e7efe9; }
+.et-qr h2 { color: #fff; }
+.et-qr .cs-sub { color: #b9cfc2; }
+.et-qr-code { background: #fff; padding: 16px; border-radius: 18px; }
+.et-qr-texte { font-family: var(--titre); font-size: 28px; font-weight: 600; letter-spacing: .08em; color: #fff; margin: 0; }
+.et-retour-paiement { max-width: 540px; margin: 24px auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 40px 32px; }
+.et-rond {
+  width: 84px; height: 96px; border-radius: 999px 999px 16px 16px; display: flex; align-items: center; justify-content: center;
+  font-size: 34px; font-weight: 700;
+}
+.et-rond-ok { background: var(--vert); color: #fff; }
+.et-rond-ko { background: var(--harissa); color: #fff; }
+.et-rond-attente { background: var(--ble-pale); color: var(--ble); }
+.et-centre { text-align: center; }
+
+/* ---------- Page de paiement simulée (mode démo) ---------- */
+.et-simu { display: flex; flex-direction: column; align-items: center; padding: 0 16px 32px; }
+.et-simu-bandeau { width: 100%; margin: 0 -16px 32px; padding: 10px 16px; background: var(--ble-pale); color: var(--ble); font-weight: 600; text-align: center; }
+.et-simu-carte { width: 100%; max-width: 440px; background: var(--papier); border: 1px solid var(--trait); border-radius: 22px; padding: 30px; display: flex; flex-direction: column; gap: 14px; }
+.et-simu-carte h1 { font-size: 40px; }
+.et-simu-ligne { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.et-simu-carte input { width: 100%; min-width: 0; }
+.et-simu-carte input[readonly] { background: var(--creme); }
+
+/* ---------- Tableau de bord étudiant ---------- */
+.et .cs-grid { margin: 0; }
+.et .cs-tablebox a { white-space: nowrap; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 1000px) {
+  .et-panier { grid-template-columns: 1fr; }
+  .et-resume { position: static; }
+  .et-detail { grid-template-columns: 1fr; }
+  .et-detail .cloche-grande { max-width: 220px; }
+}
+@media (max-width: 720px) {
+  .et-header { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+  .et-nav { order: 3; flex: 1 1 100%; overflow-x: auto; }
+  .et-user { margin-left: auto; }
+  .et-prenom, .et-panier-bouton > span:not(.et-badge) { display: none; }
+  .et-main { padding: 22px 16px 48px; }
+  .et-hero { grid-template-columns: 1fr; }
+  .et-compte { text-align: left; }
+  .et-compte b { font-size: 44px; display: inline; margin-right: 8px; }
+  .et-recherche { border-radius: 22px; padding: 6px; }
+  .et-select { flex: 1 1 100%; }
+  .et-carte { grid-template-columns: 1fr; }
+  .et-carte::before, .et-carte::after { display: none; }
+  .et-carte .cloche-moyenne { width: 100%; height: 120px; border-radius: 16px; }
+  .et-corps { padding-left: 0; border-left: 0; }
+  .et-ligne-texte { flex: 1 1 calc(100% - 72px); }
+  .et-ligne-total { margin-left: auto; }
+  .et-liste-infos div { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* ---------- Confirmation dans la page (vider le panier) ---------- */
+.et-confirmer { border: 1.5px solid var(--harissa); border-radius: 16px; padding: 14px; background: #fbefe9; display: flex; flex-direction: column; gap: 10px; }
+.et-confirmer p { margin: 0; font-size: 14.5px; }
+.et-confirmer-boutons { display: flex; gap: 8px; }
+.et-confirmer-boutons .cs-btn { flex: 1; }
