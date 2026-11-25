@@ -4,6 +4,7 @@ const { requireAuth, optionalAuth, requireRole } = require('../middleware/auth')
 const { validate } = require('../middleware/errorHandler');
 const { ROLES, TYPES_COMMERCE } = require('../config/constants');
 const c = require('../controllers/shops.controller');
+const { avisDuCommerce } = require('../controllers/avis.controller');
 
 const router = Router();
 
@@ -26,6 +27,7 @@ const reglesCommerce = (obligatoire) => {
 
 router.get('/', c.listePublique);
 router.get('/mine', requireAuth, requireRole(ROLES.MERCHANT), c.monCommerce);
+router.get('/:id/avis', avisDuCommerce);
 router.get('/:id', optionalAuth, c.detail);
 router.post('/', requireAuth, requireRole(ROLES.MERCHANT), ...reglesCommerce(true), c.creer);
 router.put('/:id', requireAuth, requireRole(ROLES.MERCHANT), ...reglesCommerce(false), c.modifier);

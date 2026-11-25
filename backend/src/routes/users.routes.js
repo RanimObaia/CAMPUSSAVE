@@ -1,12 +1,13 @@
 const { Router } = require('express');
 const { body } = require('express-validator');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 const { validate } = require('../middleware/errorHandler');
-const { getMe, updateMe } = require('../controllers/users.controller');
+const { ROLES, REGIMES } = require('../config/constants');
+const c = require('../controllers/users.controller');
 
 const router = Router();
 
-router.get('/me', requireAuth, getMe);
+router.get('/me', requireAuth, c.getMe);
 
 router.put(
   '/me',
@@ -17,8 +18,19 @@ router.put(
   body('etablissement').optional().trim().isLength({ max: 100 }),
   body('numeroEtudiant').optional().trim().isLength({ max: 30 }),
   body('fcmToken').optional().isString().isLength({ max: 4096 }),
+  body('preferences').optional().isObject().withMessage('Préférences invalides.'),
+  body('preferences.langue').optional().isIn(['fr', 'ar', 'en']).withMessage('Langue : fr, ar ou en.'),
+  body('preferences.regimes').optional().isArray().custom((l) => l.every((r) => REGIMES.includes(r)))
+    .withMessage(`Régimes possibles : ${REGIMES.join(', ')}.`),
+  body('preferences.notifications').optional().isObject(),
+  body('preferences.notifications.*').optional().isBoolean({ strict: true }).withMessage('true ou false attendu.'),
   validate,
-  updateMe,
+  c.updateMe,
 );
+
+// Commerces favoris (étudiant) : alerte quand ils publient une offre
+router.get('/me/favoris', requireAuth, requireRole(ROLES.STUDENT), c.mesFavoris);
+router.put('/me/favoris/:commerceId', requireAuth, requireRole(ROLES.STUDENT), c.ajouterFavori);
+router.delete('/me/favoris/:commerceId', requireAuth, requireRole(ROLES.STUDENT), c.retirerFavori);
 
 module.exports = router;

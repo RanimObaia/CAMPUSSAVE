@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { USE_MOCK } from '../config/constants'
 import EcranAuth from '../components/EcranAuth'
 
-const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/' }
+const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/offres' }
 
 export default function Login() {
   const { user, login, erreurConnexion } = useAuth()
@@ -28,7 +28,7 @@ export default function Login() {
       <form onSubmit={submit}>
         <h2>Content de te revoir</h2>
         <p className="cs-sub">Étudiant, commerçant ou administrateur : connecte-toi à ton espace.</p>
-        {USE_MOCK && <p className="auth-demo">Mode démo : etudiant@demo.tn, merchant@demo.tn ou admin@demo.tn, avec n'importe quel mot de passe.</p>}
+        {USE_MOCK && <p className="auth-demo">Mode démo (comptes du jeu de données de l'équipe) : etudiant@demo.campussave.tn, layal@demo.campussave.tn ou admin@demo.campussave.tn, avec n'importe quel mot de passe.</p>}
         {(erreur || erreurConnexion) && <div className="cs-error" role="alert">{erreur || erreurConnexion}</div>}
         <div className="cs-field"><label htmlFor="email">Adresse e-mail</label>
           <input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
@@ -36,6 +36,7 @@ export default function Login() {
           <input id="pw" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} /></div>
         <button className="cs-btn primary" disabled={envoi}>{envoi ? 'Connexion…' : 'Se connecter'}</button>
         <p className="cs-sub">Pas encore de compte ? <Link to="/inscription">Créer un compte</Link></p>
+        <p className="cs-sub auth-aide-lien"><Link to="/aide">Besoin d'aide ?</Link> · <Link to="/">Retour à l'accueil</Link></p>
       </form>
     </EcranAuth>
   )

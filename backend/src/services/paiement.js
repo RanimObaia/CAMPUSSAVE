@@ -1,5 +1,5 @@
 // Confirmation du paiement : vérification auprès de Konnect, passage à « Payée »,
-// QR code de retrait, email de confirmation.
+// QR code de retrait, email de confirmation (ou annulation + email de refus).
 // La commande elle-même (création, stock, annulation) est gérée par le code
 // des commandes (branche d'Ahmed). Ce fichier suppose seulement qu'une commande
 // de la collection "orders" a : code, idEtudiant, emailEtudiant, commerce { nom, adresse },
@@ -9,6 +9,8 @@ const { STATUT_COMMANDE, STATUT_PAIEMENT } = require('../config/paiement');
 const { httpError, docToJson } = require('../utils/http');
 const { passerelle } = require('./passerelle');
 const email = require('./email');
+const { notifier } = require('./notifications');
+const { annulerEtRemettreStock } = require('./annulation');
 
 const orders = () => db.collection('orders');
 
@@ -44,6 +46,8 @@ async function marquerPayee(id, paiementKonnect) {
   if (nouveau) {
     const envoye = await email.envoyerConfirmation(await lireCommande(id));
     await orders().doc(id).update({ emailEnvoye: envoye });
+    const c = await lireCommande(id);
+    notifier(c.idEtudiant, 'Paiement confirmé ✓', `Commande ${c.code} payée. Ton QR code est prêt.`, { commandeId: id, type: 'PAIEMENT_REUSSI' });
   }
   return lireCommande(id);
 }
@@ -54,8 +58,14 @@ async function marquerPayee(id, paiementKonnect) {
 // n'arrive pas (serveur en local, sans ngrok).
 async function verifierPaiement(commande) {
   if (commande.statut !== STATUT_COMMANDE.EN_ATTENTE_PAIEMENT || !commande.paiement?.reference) return commande;
-  const paiement = await passerelle().lirePaiement(commande.paiement.reference);
-  if (!passerelle().estReussi(paiement)) return commande;
+  const passe = passerelle();
+  const paiement = await passe.lirePaiement(commande.paiement.reference);
+  if (passe.estEchoue?.(paiement)) {
+    // Refus définitif chez la passerelle : annulation, stock remis, e-mail de refus
+    await annulerEtRemettreStock(orders().doc(commande.id), { echecPaiement: true });
+    return lireCommande(commande.id);
+  }
+  if (!passe.estReussi(paiement)) return commande;
   if (Number(paiement.amount) !== commande.montantTotal) {
     console.error(`Montant Konnect (${paiement.amount}) différent de la commande ${commande.code} (${commande.montantTotal}).`);
     return commande;

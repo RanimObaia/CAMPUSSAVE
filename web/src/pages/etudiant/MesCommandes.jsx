@@ -21,7 +21,7 @@ export default function MesCommandes() {
       {commandes && commandes.length === 0 && (
         <div className="cs-card cs-empty">
           <p>Tu n'as pas encore passé de commande.</p>
-          <Link to="/" className="cs-btn primary et-mt">Voir les offres</Link>
+          <Link to="/offres" className="cs-btn primary et-mt">Voir les offres</Link>
         </div>
       )}
 

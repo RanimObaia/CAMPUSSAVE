@@ -1,7 +1,8 @@
 // Tableau de bord de l'étudiant : ses chiffres, ses commandes à retirer, ses dernières commandes
 import { Link } from 'react-router-dom'
 import { api } from '../../services/api'
-import { useChargement } from '../../hooks'
+import { useChargement, useTitre } from '../../hooks'
+import Icone from '../../components/Icone'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Stat, Table } from '../../components/ui'
 import { dt, dateHeure } from '../../utils/format'
@@ -9,6 +10,7 @@ import { heure } from '../../utils/categories'
 
 export default function TableauDeBord() {
   const { user } = useAuth()
+  useTitre('Tableau de bord')
   const stats = useChargement(() => api.studentStats())
   const commandes = useChargement(() => api.mesCommandes())
   const s = stats.data
@@ -32,10 +34,34 @@ export default function TableauDeBord() {
         <Stat label="Repas sauvés du gaspillage" valeur={s?.repasSauves ?? '—'} note={s?.kgSauves ? `≈ ${s.kgSauves} kg de nourriture` : undefined} />
       </div>
 
+      {s && (
+        <section className="impact cs-card" aria-label="Mon impact">
+          <div className="impact-niveau">
+            <span className="impact-sur">Niveau</span>
+            <b>{s.niveau?.nom || 'Graine'}</b>
+            {s.niveau?.suivant && (
+              <>
+                <div className="impact-barre" role="progressbar" aria-valuemin={0} aria-valuemax={100}
+                  aria-valuenow={Math.round((s.repasSauves / (s.repasSauves + s.niveau.repasPourSuivant)) * 100)}>
+                  <span style={{ width: `${Math.round((s.repasSauves / (s.repasSauves + s.niveau.repasPourSuivant)) * 100)}%` }} />
+                </div>
+                <span className="cs-sub">Encore {s.niveau.repasPourSuivant} repas pour passer « {s.niveau.suivant} »</span>
+              </>
+            )}
+          </div>
+          <ul className="impact-chiffres">
+            <li><Icone nom="feuille" taille={26} /><b>{String(s.co2Evite ?? 0).replace('.', ',')} kg</b><span>de CO₂ évités</span></li>
+            <li><Icone nom="PLATS" taille={26} /><b>{String(s.kgSauves ?? 0).replace('.', ',')} kg</b><span>de nourriture sauvée</span></li>
+            <li><Icone nom="etoilePleine" taille={26} /><b>{s.ecoPoints ?? 0}</b><span>EcoPoints (+10 par repas)</span></li>
+          </ul>
+          <p className="cs-sub impact-note">Estimations : 0,4 kg de nourriture et 2,5 kg de CO₂ évités par repas sauvé.</p>
+        </section>
+      )}
+
       <h2>À retirer</h2>
       {commandes.data && aRetirer.length === 0 && (
         <div className="cs-card cs-empty">
-          Aucune commande en attente de retrait. <Link to="/">Voir les offres</Link>
+          Aucune commande en attente de retrait. <Link to="/offres">Voir les offres</Link>
         </div>
       )}
       <ul className="et-lignes">

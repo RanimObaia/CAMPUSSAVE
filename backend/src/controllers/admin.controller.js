@@ -34,4 +34,14 @@ async function changerActif(req, res) {
   res.json(docToJson(await users().doc(id).get()));
 }
 
-module.exports = { listeUtilisateurs, changerActif };
+// GET /api/admin/orders : toutes les commandes avec leur paiement, les plus récentes d'abord
+async function listeCommandes(req, res) {
+  const snap = await db.collection('orders').get();
+  const liste = snap.docs
+    .map(docToJson)
+    .sort((a, b) => String(b.dateCommande).localeCompare(String(a.dateCommande)))
+    .slice(0, 200);
+  res.json(liste);
+}
+
+module.exports = { listeUtilisateurs, changerActif, listeCommandes };

@@ -22,7 +22,7 @@ export default function Panier() {
         <h1>Mon panier</h1>
         <div className="cs-card cs-empty">
           <p>Ton panier est vide.</p>
-          <Link to="/" className="cs-btn primary et-mt">Voir les offres</Link>
+          <Link to="/offres" className="cs-btn primary et-mt">Voir les offres</Link>
         </div>
       </>
     )

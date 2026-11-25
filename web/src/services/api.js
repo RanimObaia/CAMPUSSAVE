@@ -55,6 +55,37 @@ const real = {
   validateShop: (id, decision) => request(`/admin/shops/${id}/validate`, { method: 'PATCH', body: { decision } }),
   adminUsers: () => request('/admin/users'),
   setUserActive: (id, actif) => request(`/admin/users/${id}`, { method: 'PATCH', body: { actif } }),
+  // Favoris (étudiant)
+  mesFavoris: () => request('/users/me/favoris'),
+  ajouterFavori: (commerceId) => request(`/users/me/favoris/${commerceId}`, { method: 'PUT' }),
+  retirerFavori: (commerceId) => request(`/users/me/favoris/${commerceId}`, { method: 'DELETE' }),
+  // Notifications (cloche)
+  notifications: () => request('/notifications'),
+  notificationLue: (id) => request(`/notifications/${id}/lu`, { method: 'PATCH' }),
+  toutLu: () => request('/notifications/tout-lu', { method: 'POST' }),
+  // Avis
+  avisCommerce: (commerceId) => request(`/shops/${commerceId}/avis`),
+  donnerAvis: (commandeId, data) => request(`/orders/${commandeId}/avis`, { method: 'POST', body: data }),
+  // Délégation du retrait à un ami
+  deleguer: (commandeId, nom) => request(`/orders/${commandeId}/deleguer`, { method: 'POST', body: { nom } }),
+  annulerDelegation: (commandeId) => request(`/orders/${commandeId}/deleguer`, { method: 'DELETE' }),
+  voirDelegation: (token) => request(`/orders/delegue/${encodeURIComponent(token)}`),
+  // Signalements
+  signaler: (data) => request('/reports', { method: 'POST', body: data }),
+  mesSignalements: () => request('/reports/mine'),
+  adminSignalements: (statut) => request(`/admin/reports${statut ? `?statut=${statut}` : ''}`),
+  traiterSignalement: (id, statut, reponse) => request(`/admin/reports/${id}`, { method: 'PATCH', body: { statut, reponse } }),
+  // Public
+  contact: (data) => request('/contact', { method: 'POST', body: data }),
+  statsPubliques: () => request('/stats/public'),
+  sante: () => request('/health'),
+  // Commerçant
+  merchantStatsDetail: () => request('/stats/merchant/detail'),
+  republierOffre: (id, quantiteDisponible) => request(`/offers/${id}/republier`, { method: 'POST', body: quantiteDisponible ? { quantiteDisponible } : {} }),
+  // Admin
+  adminOffres: () => request('/admin/offers'),
+  retirerOffreAdmin: (id, motif) => request(`/admin/offers/${id}/retirer`, { method: 'PATCH', body: { motif } }),
+  adminCommandes: () => request('/admin/orders'),
 }
 
 export const api = USE_MOCK ? mock : real

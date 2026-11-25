@@ -5,24 +5,16 @@ const {
   STATUT_VALIDATION,
   STATUT_OFFRE,
   STATUT_COMMANDE,
-  STATUT_PAIEMENT,
 } = require("../config/constants");
 const { commerceDuCommercant } = require("./shops.controller");
 const { verifierPaiement } = require("../services/paiement");
 const { notifier } = require("../services/notifications");
+const { annulerEtRemettreStock, enMillis } = require("../services/annulation");
 
-const DELAI_EXPIRATION_MS = 30 * 60 * 1000; // 30 minutes
 const POINTS_PAR_REPAS = 10;
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 // ----------------------------- Outils -----------------------------
-
-function enMillis(valeur) {
-  if (!valeur) return null;
-  if (typeof valeur.toMillis === "function") return valeur.toMillis();
-  const t = new Date(valeur).getTime();
-  return Number.isNaN(t) ? null : t;
-}
 
 // Code impossible à deviner : CS- + 6 caractères aléatoires.
 function genererCode() {
@@ -67,49 +59,6 @@ async function commerceIdObligatoire(uid) {
       "Aucun commerce associé à votre compte."
     );
   return id;
-}
-
-// Annule une commande EN_ATTENTE_PAIEMENT et remet le stock (dans une transaction).
-// seulementSiExpiree : n'annule que si la commande a plus de 30 minutes.
-// echecPaiement : marque aussi le paiement comme ECHOUE.
-// Renvoie true si la commande a été annulée.
-async function annulerEtRemettreStock(
-  orderRef,
-  { seulementSiExpiree = false, echecPaiement = false } = {}
-) {
-  return db.runTransaction(async (tx) => {
-    const snap = await tx.get(orderRef);
-    if (!snap.exists) return false;
-    const commande = snap.data();
-    if (commande.statut !== STATUT_COMMANDE.EN_ATTENTE_PAIEMENT) return false;
-
-    if (seulementSiExpiree) {
-      const creeLe = enMillis(commande.dateCommande);
-      if (!creeLe || Date.now() - creeLe < DELAI_EXPIRATION_MS) return false;
-    }
-
-    // Lectures d'abord
-    const offerRefs = commande.lignes.map((l) =>
-      db.collection("offers").doc(l.offreId)
-    );
-    const offerSnaps = await tx.getAll(...offerRefs);
-
-    // Puis écritures
-    offerSnaps.forEach((offerSnap, i) => {
-      if (!offerSnap.exists) return;
-      const changes = {
-        quantiteDisponible: FieldValue.increment(commande.lignes[i].quantite),
-      };
-      if (offerSnap.data().statut === STATUT_OFFRE.EPUISEE)
-        changes.statut = STATUT_OFFRE.ACTIVE;
-      tx.update(offerSnap.ref, changes);
-    });
-
-    const maj = { statut: STATUT_COMMANDE.ANNULEE };
-    if (echecPaiement) maj.paiement = { statut: STATUT_PAIEMENT.ECHOUE };
-    tx.set(orderRef, maj, { merge: true });
-    return true;
-  });
 }
 
 // Commande non payée : on demande d'abord à Konnect si le paiement a abouti
@@ -379,7 +328,7 @@ async function markReady(req, res) {
     maj.data().idEtudiant,
     "Commande prête 🎉",
     `Votre commande ${maj.data().code} est prête à être retirée.`,
-    { commandeId: ref.id }
+    { commandeId: ref.id, type: "COMMANDE_PRETE" }
   );
   res.json(docToJson(maj));
 }
@@ -441,13 +390,64 @@ async function validateQr(req, res) {
   notifier(
     maj.data().idEtudiant,
     "Commande remise ✅",
-    "Merci d'avoir sauvé un repas ! Vos EcoPoints ont été ajoutés.",
-    { commandeId: ref.id }
+    "Merci d'avoir sauvé un repas ! Laisse un avis sur le commerce pour aider les autres étudiants.",
+    { commandeId: ref.id, type: "COMMANDE_REMISE" }
   );
   res.json(docToJson(maj));
 }
 
+// POST /api/orders/:id/deleguer  { nom? } : l'étudiant confie le retrait à un ami.
+// Renvoie un lien secret ; l'ami y voit le QR code, le commerçant le scanne comme d'habitude.
+async function deleguer(req, res) {
+  const ref = db.collection("orders").doc(req.params.id);
+  const snap = await ref.get();
+  if (!snap.exists || snap.data().idEtudiant !== req.user.uid) {
+    throw httpError(404, "COMMANDE_INTROUVABLE", "Commande introuvable.");
+  }
+  if (![STATUT_COMMANDE.PAYEE, STATUT_COMMANDE.PRETE].includes(snap.data().statut)) {
+    throw httpError(409, "DELEGATION_IMPOSSIBLE", "Seule une commande payée et pas encore retirée peut être confiée à un ami.");
+  }
+  const token = snap.data().delegation?.token || crypto.randomBytes(18).toString("base64url");
+  await ref.update({
+    delegation: { token, nom: (req.body.nom || "").trim() || null, date: FieldValue.serverTimestamp() },
+  });
+  const web = process.env.WEB_APP_URL || "http://localhost:5173";
+  res.json({ token, lien: `${web}/retrait/${token}` });
+}
+
+// DELETE /api/orders/:id/deleguer : annuler la délégation (le lien ne marche plus)
+async function annulerDelegation(req, res) {
+  const ref = db.collection("orders").doc(req.params.id);
+  const snap = await ref.get();
+  if (!snap.exists || snap.data().idEtudiant !== req.user.uid) {
+    throw httpError(404, "COMMANDE_INTROUVABLE", "Commande introuvable.");
+  }
+  await ref.update({ delegation: FieldValue.delete() });
+  res.json(docToJson(await ref.get()));
+}
+
+// GET /api/orders/delegue/:token (public) : ce que voit l'ami qui récupère la commande
+async function voirDelegation(req, res) {
+  const snap = await db.collection("orders").where("delegation.token", "==", String(req.params.token)).limit(1).get();
+  if (snap.empty) throw httpError(404, "LIEN_INVALIDE", "Ce lien de retrait n'est pas valide ou a été annulé.");
+  const c = docToJson(snap.docs[0]);
+  const profil = (await db.collection("users").doc(c.idEtudiant).get()).data() || {};
+  res.json({
+    code: [STATUT_COMMANDE.PAYEE, STATUT_COMMANDE.PRETE].includes(c.statut) ? c.code : null,
+    statut: c.statut,
+    commerce: c.commerce,
+    lignes: c.lignes.map(({ titre, quantite }) => ({ titre, quantite })),
+    heureDebutRecuperation: c.heureDebutRecuperation,
+    heureFinRecuperation: c.heureFinRecuperation,
+    nomDelegue: c.delegation?.nom || null,
+    prenomEtudiant: profil.prenom || null,
+  });
+}
+
 module.exports = {
+  deleguer,
+  annulerDelegation,
+  voirDelegation,
   createOrder,
   listMine,
   getOrder,

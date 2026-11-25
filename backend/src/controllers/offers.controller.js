@@ -1,5 +1,6 @@
 const { db, FieldValue } = require('../config/firebase');
 const { ROLES, STATUT_VALIDATION, STATUT_OFFRE } = require('../config/constants');
+const { notifier } = require('../services/notifications');
 const { httpError, docToJson, pick } = require('../utils/http');
 const { commerceDuCommercant } = require('./shops.controller');
 
@@ -10,7 +11,27 @@ const offers = () => db.collection('offers');
 const CHAMPS_OFFRE = [
   'titre', 'description', 'categorie', 'prixInitial', 'prixReduit',
   'quantiteDisponible', 'heureDebutRecuperation', 'heureFinRecuperation', 'photoUrl',
+  'regimes', // préférences alimentaires : VEGETARIEN, SANS_GLUTEN…
+  'recurrente', // true : republiée automatiquement chaque jour aux mêmes heures
 ];
+
+// Campus ESSECT (Montfleury, Tunis) : point de départ des distances si l'étudiant
+// ne partage pas sa position.
+const ESSECT = { lat: 36.7907, lng: 10.1786 };
+
+// Distance à vol d'oiseau en kilomètres (formule de haversine)
+function distanceKm(a, b) {
+  if (a?.lat == null || b?.lat == null) return null;
+  const rad = (x) => (x * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return Math.round(6371 * 2 * Math.asin(Math.sqrt(h)) * 10) / 10;
+}
+
+// Heure (0-23) à Tunis
+const heureTunis = (date) =>
+  Number(new Intl.DateTimeFormat('fr-FR', { timeZone: 'Africa/Tunis', hour: '2-digit', hour12: false }).format(new Date(date)));
 
 // Statut affiché : une offre dont l'heure de fin est passée devient "EXPIREE".
 function statutAffiche(offre) {
@@ -34,7 +55,11 @@ async function avecCommerces(liste) {
       ...o,
       statut: statutAffiche(o),
       commerce: c
-        ? { id: o.commerceId, nom: c.nom, type: c.type, adresse: c.adresse, statutValidation: c.statutValidation }
+        ? {
+          id: o.commerceId, nom: c.nom, type: c.type, adresse: c.adresse, statutValidation: c.statutValidation,
+          latitude: c.latitude ?? null, longitude: c.longitude ?? null,
+          noteMoyenne: c.noteMoyenne ?? null, nbAvis: c.nbAvis || 0, horairesOuverture: c.horairesOuverture || null,
+        }
         : null,
     };
   });
@@ -71,6 +96,9 @@ function verifierCoherence(o) {
 // GET /api/offers
 //  - étudiant / visiteur : offres disponibles (ACTIVE, en stock, pas expirées, commerce validé)
 //    filtres : ?q= (titre, description, nom du commerce) &categorie= &prixMax= (millimes) &commerceId=
+//              &typeCommerce= &regime= (VEGETARIEN…) &creneau= (maintenant | midi | soir)
+//              &lat= &lng= (position de l'étudiant, sinon l'ESSECT) &distanceMax= (km)
+//              &tri= (fin | distance | prix | note | remise)
 //  - commerçant avec ?mine=true : toutes ses offres, y compris retirées et épuisées
 async function lister(req, res) {
   if (req.query.mine === 'true') {
@@ -93,20 +121,58 @@ async function lister(req, res) {
   const q = (req.query.q || '').trim().toLowerCase();
   const prixMax = req.query.prixMax ? Number(req.query.prixMax) : null;
 
-  const liste = (await avecCommerces(snap.docs.map(docToJson))).filter(
-    (o) =>
-      o.statut === STATUT_OFFRE.ACTIVE &&
-      o.quantiteDisponible > 0 &&
-      o.commerce?.statutValidation === STATUT_VALIDATION.VALIDE &&
-      (!prixMax || o.prixReduit <= prixMax) &&
-      (!q ||
-        o.titre.toLowerCase().includes(q) ||
-        (o.description || '').toLowerCase().includes(q) ||
-        o.commerce.nom.toLowerCase().includes(q)),
-  );
-  // Les retraits les plus proches d'abord
-  liste.sort((a, b) => String(a.heureFinRecuperation).localeCompare(String(b.heureFinRecuperation)));
+  const position = req.query.lat && req.query.lng
+    ? { lat: Number(req.query.lat), lng: Number(req.query.lng) }
+    : ESSECT;
+  const distanceMax = req.query.distanceMax ? Number(req.query.distanceMax) : null;
+  const maintenant = Date.now();
+
+  const liste = (await avecCommerces(snap.docs.map(docToJson)))
+    .map((o) => ({
+      ...o,
+      distanceKm: distanceKm(position, { lat: o.commerce?.latitude, lng: o.commerce?.longitude }),
+    }))
+    .filter(
+      (o) =>
+        o.statut === STATUT_OFFRE.ACTIVE &&
+        o.quantiteDisponible > 0 &&
+        o.commerce?.statutValidation === STATUT_VALIDATION.VALIDE &&
+        (!prixMax || o.prixReduit <= prixMax) &&
+        (!req.query.typeCommerce || o.commerce.type === req.query.typeCommerce) &&
+        (!req.query.regime || (o.regimes || []).includes(req.query.regime)) &&
+        (!distanceMax || (o.distanceKm != null && o.distanceKm <= distanceMax)) &&
+        correspondCreneau(o, req.query.creneau, maintenant) &&
+        (!q ||
+          o.titre.toLowerCase().includes(q) ||
+          (o.description || '').toLowerCase().includes(q) ||
+          o.commerce.nom.toLowerCase().includes(q)),
+    );
+  trier(liste, req.query.tri);
   res.json(liste);
+}
+
+// Créneau de retrait : "maintenant" (retrait possible dans l'heure), "midi" (11 h-15 h), "soir" (après 17 h)
+function correspondCreneau(o, creneau, maintenant) {
+  if (!creneau) return true;
+  const debut = new Date(o.heureDebutRecuperation).getTime();
+  if (creneau === 'maintenant') return debut <= maintenant + 3600e3;
+  const h = heureTunis(o.heureDebutRecuperation);
+  if (creneau === 'midi') return h >= 11 && h < 15;
+  if (creneau === 'soir') return h >= 17;
+  return true;
+}
+
+const remise = (o) => 1 - o.prixReduit / o.prixInitial;
+const TRIS = {
+  fin: (a, b) => String(a.heureFinRecuperation).localeCompare(String(b.heureFinRecuperation)),
+  distance: (a, b) => (a.distanceKm ?? 1e9) - (b.distanceKm ?? 1e9),
+  prix: (a, b) => a.prixReduit - b.prixReduit,
+  note: (a, b) => (b.commerce?.noteMoyenne || 0) - (a.commerce?.noteMoyenne || 0),
+  remise: (a, b) => remise(b) - remise(a),
+};
+// Par défaut : les retraits qui se terminent le plus tôt d'abord
+function trier(liste, tri) {
+  liste.sort(TRIS[tri] || TRIS.fin);
 }
 
 // GET /api/offers/:id : public si le commerce est validé ; sinon réservé
@@ -136,13 +202,111 @@ async function creer(req, res) {
   const ref = offers().doc();
   await ref.set({
     description: '',
+    regimes: [],
+    recurrente: false,
     ...data,
+    quantiteInitiale: data.quantiteDisponible,
     commerceId: commerce.id,
     statut: statutSelonStock(data.quantiteDisponible),
     dateCreation: FieldValue.serverTimestamp(),
   });
   const [offre] = await avecCommerces([await lireOffre(ref.id)]);
   res.status(201).json(offre);
+  prevenirFavoris(offre); // sans attendre : la publication ne dépend pas des notifications
+}
+
+// Alerte « Nouvelle offre » aux étudiants qui ont ce commerce en favori
+async function prevenirFavoris(offre) {
+  try {
+    if (offre.statut !== STATUT_OFFRE.ACTIVE) return;
+    const fans = await db.collection('users').where('favoris', 'array-contains', offre.commerceId).get();
+    await Promise.all(fans.docs.map((d) => notifier(
+      d.id,
+      `${offre.commerce?.nom || 'Un favori'} a publié une offre`,
+      `${offre.titre} à ${(offre.prixReduit / 1000).toFixed(3).replace('.', ',')} DT. Réserve vite !`,
+      { offreId: offre.id, type: 'OFFRE_FAVORI' },
+    )));
+  } catch (err) {
+    console.error('Alerte favoris impossible :', err.message);
+  }
+}
+
+// Même offre, aux mêmes heures, le jour suivant la date donnée (ou aujourd'hui si c'est encore possible)
+function prochainCreneau(offre, apres = Date.now()) {
+  const debut = new Date(offre.heureDebutRecuperation);
+  const fin = new Date(offre.heureFinRecuperation);
+  const duree = fin - debut;
+  const jour = 24 * 3600e3;
+  let nouveauDebut = debut.getTime();
+  while (nouveauDebut + duree <= apres) nouveauDebut += jour;
+  return { heureDebutRecuperation: new Date(nouveauDebut).toISOString(), heureFinRecuperation: new Date(nouveauDebut + duree).toISOString() };
+}
+
+// Copie d'une offre pour son prochain créneau ; l'ancienne n'est plus récurrente
+async function republierOffre(offre, quantite) {
+  const ref = offers().doc();
+  const { id, statut, dateCreation, dateModification, commerce, distanceKm: _d, ...reste } = offre;
+  const q = quantite ?? offre.quantiteInitiale ?? offre.quantiteDisponible;
+  await ref.set({
+    ...reste,
+    ...prochainCreneau(offre),
+    quantiteDisponible: q,
+    quantiteInitiale: q,
+    statut: statutSelonStock(q),
+    offreOrigine: id,
+    dateCreation: FieldValue.serverTimestamp(),
+  });
+  if (offre.recurrente) await offers().doc(id).update({ recurrente: false });
+  const [nouvelle] = await avecCommerces([await lireOffre(ref.id)]);
+  prevenirFavoris(nouvelle);
+  return nouvelle;
+}
+
+// POST /api/offers/:id/republier  { quantiteDisponible? } : publier à nouveau en un clic
+async function republier(req, res) {
+  await commerceValide(req.user.uid);
+  const offre = await offreDuCommercant(req.user.uid, req.params.id);
+  const q = req.body.quantiteDisponible;
+  res.status(201).json(await republierOffre(offre, q == null ? undefined : Number(q)));
+}
+
+// Tâche automatique : les offres récurrentes dont le créneau est passé sont republiées
+async function republierRecurrentes() {
+  const snap = await offers().where('recurrente', '==', true).get();
+  let n = 0;
+  for (const d of snap.docs) {
+    const o = docToJson(d);
+    if (o.statut === STATUT_OFFRE.RETIREE) continue;
+    if (new Date(o.heureFinRecuperation).getTime() > Date.now()) continue;
+    await republierOffre(o);
+    n += 1;
+  }
+  return n;
+}
+
+// GET /api/admin/offers : toutes les offres (modération)
+async function listeAdmin(req, res) {
+  const snap = await offers().get();
+  const liste = await avecCommerces(snap.docs.map(docToJson));
+  liste.sort((a, b) => String(b.dateCreation).localeCompare(String(a.dateCreation)));
+  res.json(liste);
+}
+
+// PATCH /api/admin/offers/:id/retirer  { motif } : l'admin retire une offre non conforme
+async function retirerAdmin(req, res) {
+  const offre = await lireOffre(req.params.id);
+  await offers().doc(offre.id).update({
+    statut: STATUT_OFFRE.RETIREE,
+    retireeParAdmin: true,
+    motifRetrait: req.body.motif || null,
+    dateModification: FieldValue.serverTimestamp(),
+  });
+  const shop = (await db.collection('shops').doc(offre.commerceId).get()).data();
+  if (shop?.idCommercant) {
+    notifier(shop.idCommercant, 'Offre retirée par la modération', `« ${offre.titre} » : ${req.body.motif || 'non conforme aux règles de CampusSave.'}`, { offreId: offre.id, type: 'MODERATION' });
+  }
+  const [maj] = await avecCommerces([await lireOffre(offre.id)]);
+  res.json(maj);
 }
 
 // Vérifie que l'offre appartient au commerce du commerçant connecté.
@@ -185,4 +349,7 @@ async function retirer(req, res) {
   res.status(204).end();
 }
 
-module.exports = { lister, detail, creer, modifier, retirer };
+module.exports = {
+  lister, detail, creer, modifier, retirer, republier, republierRecurrentes, listeAdmin, retirerAdmin,
+  distanceKm, prochainCreneau,
+};

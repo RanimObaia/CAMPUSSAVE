@@ -76,4 +76,10 @@ function estReussi(paiement) {
   return transactions.length === 0 || transactions.some((t) => t.status === 'success');
 }
 
-module.exports = { initierPaiement, lirePaiement, estReussi };
+// Paiement définitivement refusé ou expiré chez Konnect (l'étudiant ne peut plus payer avec ce lien)
+const STATUTS_ECHEC = ['failed', 'expired', 'canceled', 'cancelled', 'rejected'];
+function estEchoue(paiement) {
+  return Boolean(paiement) && STATUTS_ECHEC.includes(String(paiement.status).toLowerCase());
+}
+
+module.exports = { initierPaiement, lirePaiement, estReussi, estEchoue };

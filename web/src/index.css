@@ -78,3 +78,31 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Thème sombre (bouton lune / soleil, ou réglage du système) ---------- */
+[data-theme="sombre"] {
+  --pin: #0e1c16; --pin-clair: #1a2e25;
+  --vert: #3fa77a; --vert-fonce: #5bbd90; --vert-pale: #1d3a2d;
+  --creme: #121a16; --sable: #1f2a24; --papier: #18221d;
+  --encre: #ebe5d8; --gris: #a8b3ab; --trait: #2c3a33;
+  --harissa: #e0745a; --harissa-pale: #3a211b; --ble: #d9ad55; --ble-pale: #3a3020;
+  color-scheme: dark;
+}
+[data-theme="sombre"] .cs-field input, [data-theme="sombre"] .cs-field select, [data-theme="sombre"] .cs-field textarea,
+[data-theme="sombre"] .cs-choix label { background: var(--papier); color: var(--encre); }
+[data-theme="sombre"] .cs-error { color: #f3b3a3; }
+[data-theme="sombre"] .et-header { background: rgba(18, 26, 22, .94); }
+[data-theme="sombre"] .cs-btn.primary { color: #0e1c16; }
+[data-theme="sombre"] .et-qr-code, [data-theme="sombre"] .qr-plein-code { background: #fff; }
+
+/* ---------- Accessibilité : lien « Aller au contenu » ---------- */
+.evitement { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--vert); color: #fff; padding: 10px 16px; border-radius: 999px; font-weight: 600; }
+.evitement:focus { top: 12px; }
+
+/* ---------- Écriture de droite à gauche (arabe) ---------- */
+[dir="rtl"] .cs { text-align: right; }
+[dir="rtl"] .et-carte::before, [dir="rtl"] .et-carte::after { left: auto; right: 111px; }
+[dir="rtl"] .et-corps { padding-left: 0; padding-right: 14px; border-left: 0; border-right: 1.5px dashed var(--trait); }
+[dir="rtl"] .et-compte { text-align: left; }
+[dir="rtl"] .icone[data-sens] { transform: scaleX(-1); }
+[dir="rtl"] .cs th { text-align: right; }

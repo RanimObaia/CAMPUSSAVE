@@ -8,7 +8,7 @@ import { api } from '../services/api'
 import { ROLES } from '../config/constants'
 import EcranAuth from '../components/EcranAuth'
 
-const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/' }
+const ACCUEIL = { merchant: '/commercant', admin: '/admin', student: '/offres' }
 
 const VIDE = {
   prenom: '',
@@ -33,7 +33,8 @@ function verifier(f) {
 
 export default function Inscription() {
   const { user, login } = useAuth()
-  const [form, setForm] = useState(VIDE)
+  // /inscription?role=merchant (depuis « Devenir partenaire ») : rôle commerçant déjà coché
+  const [form, setForm] = useState(() => (new URLSearchParams(window.location.search).get('role') === ROLES.MERCHANT ? { ...VIDE, role: ROLES.MERCHANT } : VIDE))
   const [erreur, setErreur] = useState('')
   const [envoi, setEnvoi] = useState(false)
 
