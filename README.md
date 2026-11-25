@@ -10,7 +10,7 @@ CampusSave met en relation les étudiants de l'ESSECT avec les restaurants et ca
 | Membre | Rôle |
 |---|---|
 | Ranim | Cheffe de projet · Backend (auth, commerces, offres, statistiques, données de démo) |
-| Eya | Web · Espace étudiant · Paiement Konnect et email de confirmation · Cahier des charges |
+| Eya | Web · Espace étudiant · Paiement en ligne (Konnect, Stripe) et email de confirmation · Cahier des charges |
 | Ahmed | Backend · Commandes, QR code de retrait, notifications push |
 | Ines | Web · Espace commerçant et admin · Diagrammes UML |
 | Azer | Mobile · Application Flutter |
@@ -22,7 +22,7 @@ React (web) ─┐                               ┌─ Firebase Authentication
              ├─ REST + Firebase ID token ──► Node.js / Express ─┼─ Cloud Firestore
 Flutter ─────┘                               │                  ├─ Firebase Cloud Messaging
                                              │                  └─ Email (Nodemailer)
-                                             └─ Konnect (paiement, mode sandbox)
+                                             └─ Paiement en ligne : Stripe (mode test) ou Konnect
 ```
 
 Les deux applications utilisent le même backend et partagent les mêmes données.
@@ -43,9 +43,19 @@ Les deux applications utilisent le même backend et partagent les mêmes donnée
 - Node.js ≥ 20 et npm
 - Flutter SDK ≥ 3.22
 - Un projet Firebase (Authentication, Firestore, Cloud Messaging activés)
-- Un compte Konnect sandbox (clé API + wallet ID)
+- Un compte Stripe en mode test (clé secrète `sk_test_…`), ou un compte Konnect sandbox (clé API + wallet ID)
+- Un compte Gmail avec un mot de passe d'application (email de confirmation)
 
 ## Installation et exécution
+
+### Lancement rapide (backend + web ensemble)
+Depuis la racine du projet, une fois `backend/.env`, `backend/serviceAccountKey.json` et `web/.env.local` en place :
+```bash
+npm run installer   # installe la racine, le backend et le web
+npm run seed        # données de démonstration (une fois, puis le matin de la démo)
+npm run dev         # API sur http://localhost:4000/api et site sur http://localhost:5173
+```
+Le détail de chaque partie suit.
 
 ### 1. Backend
 ```bash
@@ -100,14 +110,46 @@ Les horaires de retrait sont calculés à partir de l'heure du lancement, relanc
 **Sans backend :** `VITE_USE_MOCK=true` dans `web/.env.local` lance le site avec des données fictives
 (`etudiant@demo.tn`, `merchant@demo.tn`, `admin@demo.tn`, n'importe quel mot de passe). Le paiement y est simulé.
 
-## Paiement en ligne (Konnect, mode test)
-- API : `https://api.preprod.konnect.network/api/v2`, compte de test sur `dashboard.sandbox.konnect.network`.
-- Parcours : panier → `POST /api/orders` → `POST /api/payments/init` (renvoie `payUrl`) → page Konnect → retour sur le site.
-  Konnect appelle `GET /api/payments/webhook?payment_ref=…` ; le backend **revérifie le paiement auprès de Konnect**
-  avant de passer la commande en « Payée », générer le QR code et envoyer l'email de confirmation.
-- Cartes de test : Visa `4509 2111 1111 1119`, 12/26, CVC 748 (accepté) · MasterCard `5471 2511 1111 1116`, 11/23, CVC 858 (refusé).
-- Pour que Konnect joigne le webhook depuis un PC, exposer le port 4000 (ex. `ngrok http 4000`) et mettre l'adresse dans `BACKEND_PUBLIC_URL`.
-- Une commande non payée au bout de 30 minutes est annulée et le stock est rendu.
+## Paiement en ligne (mode test)
+Le backend peut utiliser trois passerelles de paiement. On choisit la passerelle avec une seule ligne de `backend/.env`, sans changer le code :
+
+| `PAIEMENT_MODE` | Passerelle | Usage |
+|---|---|---|
+| `stripe` | Stripe, mode test (vraie page de paiement par carte) | **utilisé pour la démo** |
+| `konnect` | Konnect sandbox (passerelle tunisienne, paiement en dinars) | cible pour la mise en production ; le sandbox était indisponible pendant le projet (pas de SMS de vérification) |
+| `simulation` | Page de paiement de test intégrée au site | sans aucun service extérieur |
+
+**Parcours :** panier → `POST /api/orders` (stock réservé) → `POST /api/payments/init` (renvoie `payUrl`) → page de paiement → retour sur le site.
+Le navigateur n'est jamais cru : le backend **redemande l'état du paiement à la passerelle** avant de passer la commande en « Payée », de générer le QR code et d'envoyer l'email de confirmation (une seule fois).
+Une commande non payée au bout de 30 minutes est annulée et le stock est rendu ; un paiement refusé ou abandonné annule aussi la commande.
+
+### Stripe (mode test)
+```env
+PAIEMENT_MODE=stripe
+STRIPE_SECRET_KEY=sk_test_...    # dashboard.stripe.com > Développeurs > Clés API
+STRIPE_DEVISE=eur                # le compte de test n'accepte pas le TND
+STRIPE_TAUX=0.29                 # 1 DT = 0,29 € ; tnd si le compte accepte le dinar
+```
+- Tous les prix du site restent en DT. Le montant en DT est écrit sur la page Stripe ; Stripe encaisse l'équivalent en euros (minimum Stripe : 0,50 €).
+- Carte de test acceptée : `4242 4242 4242 4242`, date future (12/30), CVC 123. Carte refusée : `4000 0000 0000 0002`.
+- Aucun webhook à exposer : le paiement est vérifié auprès de Stripe au retour sur le site.
+
+### Konnect (sandbox)
+```env
+PAIEMENT_MODE=konnect
+KONNECT_API_URL=https://api.preprod.konnect.network/api/v2
+KONNECT_API_KEY=...
+KONNECT_WALLET_ID=...
+```
+- Konnect appelle `GET /api/payments/webhook?payment_ref=…`. Depuis un PC, exposer le port 4000 (ex. `ngrok http 4000`) et mettre l'adresse dans `BACKEND_PUBLIC_URL`.
+
+### Email de confirmation
+```env
+MAIL_USER=adresse@gmail.com
+MAIL_APP_PASSWORD=xxxxxxxxxxxxxxxx   # mot de passe d'application Google (16 lettres, sans espaces)
+MAIL_COPIE=adresse@gmail.com         # facultatif : reçoit une copie cachée de chaque confirmation
+```
+L'email récapitule la commande (articles, total en DT, adresse et créneau de retrait, référence du paiement) avec le QR code de retrait.
 
 ## API REST (préfixe `/api`)
 Toutes les routes, sauf indication, demandent l'en-tête `Authorization: Bearer <Firebase ID token>`.
@@ -125,7 +167,8 @@ Les erreurs ont la forme `{ "code": "...", "message": "..." }` ; les prix sont e
 | POST · GET | `/orders`, `/orders/mine`, `/orders/:id/cancel` | étudiant |
 | GET · PATCH · POST | `/orders`, `/orders/:id/ready`, `/orders/validate-qr` | commerçant |
 | POST | `/payments/init` | étudiant |
-| GET | `/payments/webhook` | Konnect |
+| POST | `/payments/simulation` | étudiant (`PAIEMENT_MODE=simulation`) |
+| GET | `/payments/webhook` | Konnect (public, revérifié auprès de Konnect) |
 | GET | `/stats/student`, `/stats/merchant`, `/stats/admin` | selon le rôle |
 | GET · PATCH | `/admin/shops`, `/admin/shops/:id/validate`, `/admin/users`, `/admin/users/:id` | admin |
 
@@ -140,11 +183,11 @@ Les erreurs ont la forme `{ "code": "...", "message": "..." }` ; les prix sont e
 - [x] Gestion des offres (publication, modification, retrait, stock)
 - [x] Recherche (produit, commerce, catégorie, prix)
 - [x] Panier et réservation (stock réservé dans une transaction)
-- [x] Paiement en ligne (Konnect sandbox) et email de confirmation
+- [x] Paiement en ligne en mode test (Stripe ; Konnect prêt) et email de confirmation avec QR code
 - [x] QR code de retrait, validé par le commerçant
 - [x] Notifications push (commande prête, commande remise)
 - [x] Tableaux de bord étudiant, commerçant et admin (repas et kilos sauvés, chiffre d'affaires)
-- [x] Bonus : EcoPoints et impact (repas et kg de nourriture sauvés)
+- [x] Bonus : EcoPoints, Impact Dashboard (repas et kg de nourriture sauvés), Campus Radar (carte des commerces)
 - [ ] Application mobile Flutter (en cours)
 
 ## Documentation
