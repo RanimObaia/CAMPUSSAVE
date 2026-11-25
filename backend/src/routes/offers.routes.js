@@ -24,8 +24,11 @@ const reglesOffre = (obligatoire) => {
       .withMessage('La quantité doit être un entier positif ou nul.').toInt(),
     champ('heureDebutRecuperation').isISO8601().withMessage('Heure de début invalide.'),
     champ('heureFinRecuperation').isISO8601().withMessage('Heure de fin invalide.'),
-    body('photoUrl').optional({ values: 'falsy' }).isURL({ protocols: ['https'], require_protocol: true })
-      .withMessage('La photo doit être une adresse https://.'),
+    // Photo : un lien https, ou une photo fournie avec le site (/photos/nom.jpg, utilisée par le seed)
+    body('photoUrl').optional({ values: 'falsy' }).trim()
+      .custom((v) => /^\/photos\/[\w-]+\.(jpe?g|png|webp)$/i.test(v)
+        || /^https:\/\/\S+$/i.test(v))
+      .withMessage('La photo doit être une adresse https:// ou une photo du site (/photos/…).'),
     body('regimes').optional().isArray({ max: REGIMES.length })
       .custom((l) => l.every((r) => REGIMES.includes(r))).withMessage(`Régimes possibles : ${REGIMES.join(', ')}.`),
     body('recurrente').optional().isBoolean({ strict: true }).withMessage('"recurrente" vaut true ou false.'),
