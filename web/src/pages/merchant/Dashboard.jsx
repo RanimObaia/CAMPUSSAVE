@@ -13,7 +13,7 @@ export default function Dashboard() {
     <>
       <Entete date titre="Tableau de bord" sous="Vos offres, vos commandes et vos repas sauvés, en un coup d'œil."
         action={<div className="cs-actions">
-          <Link className="cs-btn" to="/commercant/retrait">Valider un retrait</Link>
+          <Link className="cs-btn primary" to="/commercant/retrait">Scanner le QR code d'un étudiant</Link>
           <Link className="cs-btn primary" to="/commercant/offres/nouvelle">Publier une offre</Link>
         </div>} />
       {(stats.erreur || orders.erreur) && <div className="cs-error" role="alert">{stats.erreur || orders.erreur}</div>}

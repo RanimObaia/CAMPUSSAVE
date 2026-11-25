@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const { validate } = require('../middleware/errorHandler');
 const { ROLES_INSCRIPTION } = require('../config/constants');
 const { register } = require('../controllers/auth.controller');
+const { estFort, MESSAGE: MESSAGE_MDP } = require('../utils/motDePasse');
 
 const router = Router();
 
@@ -10,9 +11,8 @@ router.post(
   '/register',
   body('email').trim().toLowerCase().isEmail().withMessage('Adresse e-mail invalide.'),
   body('motDePasse')
-    .isString()
-    .isLength({ min: 6 })
-    .withMessage('Le mot de passe doit contenir au moins 6 caractères.'),
+    .custom((v) => estFort(v))
+    .withMessage(MESSAGE_MDP),
   body('nom').trim().notEmpty().withMessage('Le nom est obligatoire.').isLength({ max: 50 }),
   body('prenom').trim().notEmpty().withMessage('Le prénom est obligatoire.').isLength({ max: 50 }),
   body('telephone')

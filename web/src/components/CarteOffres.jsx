@@ -62,7 +62,8 @@ export default function CarteOffres({ offres, position, hauteur = 460 }) {
         .addTo(couche.current)
       points.push([position.lat, position.lng])
     }
-    if (points.length > 1) carte.current.fitBounds(points, { padding: [40, 40], maxZoom: 17 })
+    // sans animation : une animation encore en cours quand on quitte la page provoquait une erreur Leaflet
+    if (points.length > 1) carte.current.fitBounds(points, { padding: [40, 40], maxZoom: 17, animate: false })
   }, [commerces, position])
 
   return (

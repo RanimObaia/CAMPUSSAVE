@@ -171,7 +171,10 @@ a.et-a-retirer .cs-btn { pointer-events: none; }
   .et-header { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
   .et-nav { order: 3; flex: 1 1 100%; overflow-x: auto; }
   .et-user { margin-left: auto; }
-  .et-prenom, .et-panier-bouton > span:not(.et-badge) { display: none; }
+  .et-panier-bouton > span:not(.et-badge) { display: none; }
+  /* sur téléphone : le prénom devient une pastille avec l'initiale, qui ouvre les paramètres */
+  .et-prenom { font-size: 0; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--vert-pale); }
+  .et-prenom::before { content: attr(data-initiale); font-size: 15px; font-weight: 700; color: var(--vert); }
   .et-main { padding: 22px 16px 48px; }
   .et-hero { grid-template-columns: 1fr; }
   .et-compte { text-align: left; }

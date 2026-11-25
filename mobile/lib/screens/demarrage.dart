@@ -175,6 +175,18 @@ class _InscriptionState extends State<Inscription> {
 
   String? _requis(String? v) => (v == null || v.trim().isEmpty) ? 'Obligatoire' : null;
 
+  // Mot de passe fort : 8 caractères min., minuscule, majuscule, chiffre et caractère spécial
+  String? _verifierMdp(String? v) {
+    final m = v ?? '';
+    final manque = <String>[];
+    if (m.length < 8) manque.add('8 caractères');
+    if (!RegExp(r'[a-z]').hasMatch(m)) manque.add('une minuscule');
+    if (!RegExp(r'[A-Z]').hasMatch(m)) manque.add('une majuscule');
+    if (!RegExp(r'\d').hasMatch(m)) manque.add('un chiffre');
+    if (!RegExp(r'[^A-Za-z0-9\s]').hasMatch(m)) manque.add('un caractère spécial');
+    return manque.isEmpty ? null : 'Il manque : ${manque.join(', ')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,7 +203,7 @@ class _InscriptionState extends State<Inscription> {
           const SizedBox(height: 14),
           TextFormField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Adresse e-mail'), validator: (v) => (v ?? '').contains('@') ? null : 'Adresse e-mail invalide'),
           const SizedBox(height: 14),
-          TextFormField(controller: _mdp, obscureText: true, decoration: const InputDecoration(labelText: 'Mot de passe (8 caractères au moins)'), validator: (v) => (v ?? '').length >= 8 ? null : '8 caractères au moins'),
+          TextFormField(controller: _mdp, obscureText: true, decoration: const InputDecoration(labelText: 'Mot de passe', helperText: '8 caractères min. : minuscule, majuscule, chiffre et caractère spécial', helperMaxLines: 2), validator: _verifierMdp),
           const SizedBox(height: 14),
           TextFormField(controller: _etab, decoration: const InputDecoration(labelText: 'Établissement (facultatif)')),
           const SizedBox(height: 8),
